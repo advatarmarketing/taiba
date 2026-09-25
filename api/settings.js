@@ -17,7 +17,7 @@
 
 import { get, set } from '../lib/kv.js';
 import { slugFrom, DEFAULT_OFFSETS, OFFSET_KEYS } from '../lib/iqamah.js';
-import { seedFor } from '../lib/seed.js';
+import { settingsWithDefaults } from '../lib/seed.js';
 import {
   ok,
   badRequest,
@@ -319,8 +319,10 @@ export default withErrors(async (req, res) => {
   const method = req.method?.toUpperCase();
 
   if (method === 'GET') {
-    const stored = await get('settings');
-    return ok(res, { settings: sanitize(stored ?? seedFor('settings')) });
+    /* settingsWithDefaults, not `?? seed` — a stored record is missing every
+       field added since it was last saved, and those need their designed
+       defaults rather than empty strings. See lib/seed.js. */
+    return ok(res, { settings: sanitize(settingsWithDefaults(await get('settings'))) });
   }
 
   if (method !== 'PUT') return methodNotAllowed(res, ['GET', 'PUT']);
@@ -330,7 +332,7 @@ export default withErrors(async (req, res) => {
   if (!body || typeof body !== 'object') return badRequest(res, 'Expected a JSON body.');
 
   // Merge over what is stored, so a partial update can't blank the rest.
-  const current = sanitize((await get('settings')) ?? seedFor('settings'));
+  const current = sanitize(settingsWithDefaults(await get('settings')));
   const incoming = body.settings ?? body;
   const merged = sanitize({
     ...current,

@@ -32,7 +32,7 @@
  */
 
 import { get, set } from '../lib/kv.js';
-import { seedFor } from '../lib/seed.js';
+import { settingsWithDefaults } from '../lib/seed.js';
 import {
   ok,
   json,
@@ -179,7 +179,10 @@ export default withErrors(async (req, res) => {
   const forced = method === 'POST';
   if (forced && !requireAuth(req, res)) return;
 
-  const site = (await get('settings').catch(() => null)) ?? seedFor('settings') ?? {};
+  /* settingsWithDefaults, not `?? seed` — a settings record saved before a
+     field existed is missing it, and an empty iqamahSlug reads as "switched
+     off" rather than "never configured". See lib/seed.js. */
+  const site = settingsWithDefaults(await get('settings').catch(() => null));
   const offsets = { ...DEFAULT_OFFSETS, ...(site.iqamahOffsets ?? {}) };
 
   /* Switched off by hand, or never set up: the typed timetable is the site's
