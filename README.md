@@ -456,14 +456,22 @@ handful of small text records.
 
 Deploy. You will get an address like `taiba-islamic-centre.vercel.app`.
 
-Open it. The site will be **completely empty** — no events, no services, no
-pictures. That is correct: the database is new. Log in and add things, or load
-the starting placeholders in one go:
+Open it. **It will not be empty.** Every public route falls back to
+`data/seed.json` for any key that has never been written — see
+`readCollection()` in `lib/collection.js` — so a brand-new deployment already
+shows the placeholder prayer times, the six services, the three events and the
+weekly rhythm. That is the point of the seed file: the site looks finished
+before anybody has typed anything.
 
-1. Set `ALLOW_SEED` to `1` in the environment variables and redeploy.
-2. Log in to the site, then visit `/api/seed` — it loads the five example
-   services, three example events and the weekly rhythm.
-3. **Delete `ALLOW_SEED` again and redeploy.** Do not leave it on.
+So there is **nothing to load and no seeding step**. Log in and start editing.
+The first time you change anything in a list, the whole list is written to the
+database as it stood, placeholders included, and it is yours from then on.
+
+`POST /api/seed` exists for one narrow job — putting the placeholders *back*
+after you have edited them, with `?force=1` — and it is off unless `ALLOW_SEED`
+is `1`. You will almost certainly never need it. **Leave `ALLOW_SEED` unset in
+production**: with it on, anyone who gets hold of the admin password can wipe
+the real content back to placeholders in one request.
 
 ### Step 6 — check it before you point the domain at it
 
