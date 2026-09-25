@@ -1349,11 +1349,15 @@ function prayerTable(settings, { compact = false } = {}) {
 function prayerCredit() {
   const feed = state.prayer;
   if (feed?.source !== 'mawaqit') {
-    /* Typed by hand. Nothing to credit, but whoever is logged in should know
-       that the live feed is not the thing they are looking at. */
+    /*
+      Typed by hand. Nothing to credit, but whoever is logged in should know
+      that the live feed is not what they are looking at — and WHY, because
+      the reasons need completely different things doing about them. The
+      server says which one it was; see manualFallback() in api/prayer.js.
+    */
     return editOnly(`
       <p class="prayer-credit prayer-credit--warn">${icon('alert')}
-        <span>These are the typed fallback times. Mawaqit is switched off, or has never been reachable.</span>
+        <span>Showing the typed fallback times. ${esc(feed?.reason ?? 'Mawaqit is switched off, or has never been reachable.')}</span>
       </p>`);
   }
 
@@ -1371,6 +1375,16 @@ function prayerCredit() {
             ? `${icon('alert')} showing a cached copy — Mawaqit could not be reached`
             : `read ${esc(read)}`
         }</span>`)
+      }${
+        /*
+          The times are live, but there is nowhere to keep them. This is what
+          a deployment with no database looks like: everything works, and
+          every cold start goes back out to Mawaqit for it. Worth saying
+          plainly, because the site gives no other outward sign of it.
+        */
+        feed.stored === false
+          ? editOnly(`<span class="prayer-credit-meta">${icon('alert')} not being cached &mdash; no database is connected</span>`)
+          : ''
       }
     </p>`;
 }

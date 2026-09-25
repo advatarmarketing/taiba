@@ -78,6 +78,16 @@ to remember on the first of the month.
 **Jumu'ah comes from Mawaqit too**, including a second or third sitting. The
 Friday panel grows and shrinks with however many are set there.
 
+#### If the times look wrong on the live site
+
+Open **`/api/prayer`** on it. `"source": "mawaqit"` means it is working. Anything
+else, and the `reason` field says what to do. Full table under
+[Prayer times](#prayer-times).
+
+The most likely answer on a new deployment is that **the database is not
+connected yet** — the times will still be live and correct, but `"stored"` will
+be `false`. Fix that in *Every setting you need in Vercel*.
+
 #### If Mawaqit is ever unreachable
 
 The site keeps a copy of **the whole year's timetable**, not just today, so an
@@ -1104,6 +1114,48 @@ worked out in **the mosque's** timezone, which Mawaqit also publishes. Without
 that, for an hour every British Summer Time night the site would show
 yesterday's timetable.
 
+### Is Mawaqit actually connected?
+
+Open **`/api/prayer`** on the site. It answers in one line:
+
+```json
+{ "prayer": { "source": "mawaqit", "cache": "store", "stored": true, … } }
+```
+
+| Field | What it means |
+|---|---|
+| `source` | `mawaqit` — the live timetable. `manual` — the typed fallback, and `reason` says why |
+| `cache` | `fresh` just fetched · `memory` this instance's copy · `store` the database's copy |
+| `stored` | `false` means the copy is only in memory, because **no database is connected** |
+| `stale` | `true` means Mawaqit could not be reached and this is an older copy |
+| `fetchedAt` | when it was last actually read from Mawaqit |
+
+`"source": "manual"` with a `reason` is the one to act on. The reason is one of
+three things, and they need completely different fixes: no Mawaqit page set,
+switched to manual on purpose, or Mawaqit itself returned an error.
+
+**`"stored": false` is worth fixing but is not urgent.** The times are live and
+correct; they are just being re-fetched on every cold start rather than kept.
+It means the database is not connected — see *Every setting you need in
+Vercel*. Edit mode says so under the timetable too.
+
+### Three caches, and why
+
+| | Lives | Covers |
+|---|---|---|
+| The instance's memory | 15 minutes | back-to-back requests, and a site with no database at all |
+| The database | 6 hours | every instance, every cold start |
+| Mawaqit | — | the source of truth |
+
+The memory tier is short-lived on purpose: it is per instance, so a long life
+there would mean two instances disagreeing about the times for hours.
+
+**Caching is allowed to fail.** The database write is in its own try/catch, and
+a failed write never throws away a good fetch. It used to: on a deployment with
+no database the write threw, a perfectly good set of times went with it, and
+the site quietly showed the typed placeholders. It looked exactly like Mawaqit
+being broken, and Mawaqit was fine.
+
 ### What happens when it fails
 
 In order, and all of it in `api/prayer.js`:
@@ -1112,7 +1164,7 @@ In order, and all of it in `api/prayer.js`:
 |---|---|
 | Normal | Today's times, credited to Mawaqit under the table |
 | Mawaqit unreachable, cache exists | **The same times**, from the cached year. Edit mode says "showing a cached copy"; a visitor is told nothing, because nothing is wrong |
-| Mawaqit has never worked | The hand-typed fallback rows from settings |
+| Mawaqit has never worked | The hand-typed fallback rows from settings, with the reason in edit mode |
 | `prayerSource` set to `manual` | The hand-typed rows, deliberately |
 
 There is no fifth case where the page has nothing to show. That is the whole
