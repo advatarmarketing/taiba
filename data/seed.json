@@ -1,0 +1,212 @@
+{
+  "//": "Starting content. Loaded by POST /api/seed, and used as the fallback for any key that has never been saved. Page WORDING does not live here — that lives in the markup and is overridden through /api/copy.",
+  "//settings": "Almost all empty on purpose. Every one of these is a media URL or a contact detail pasted in from edit mode, and every one has a designed empty state, so the site looks finished before any of it exists. The two exceptions are the prayer timetable and the week, which start as PLACEHOLDERS — a mosque's site with no times on it at all looks broken in a way an empty photo frame does not.",
+  "settings": {
+    "contact": {
+      "email": "",
+      "address": "",
+      "phone": "",
+      "whatsappNumber": ""
+    },
+    "social": {
+      "instagram": "",
+      "facebook": "",
+      "youtube": "",
+      "whatsapp": ""
+    },
+    "hero": {
+      "videoUrl": "",
+      "posterUrl": "",
+      "alt": ""
+    },
+    "welcome": {
+      "imageUrl": "",
+      "alt": ""
+    },
+    "values": {
+      "prayer": "",
+      "quran": "",
+      "knowledge": "",
+      "family": "",
+      "service": "",
+      "belonging": ""
+    },
+    "films": {
+      "services": {
+        "videoUrl": "",
+        "posterUrl": "",
+        "alt": ""
+      },
+      "break": {
+        "videoUrl": "",
+        "posterUrl": "",
+        "alt": ""
+      }
+    },
+    "//prayer": "PLACEHOLDER TIMES. They are roughly right for London in the middle of the year and they are wrong today. Replace the lot on day one from the centre's own printed timetable: edit mode, Prayer timetable. Sunrise has no jama'ah, which is why that cell is blank.",
+    "prayer": [
+      { "name": "Fajr", "begins": "4.20am", "jamaah": "5.00am" },
+      { "name": "Sunrise", "begins": "5.55am", "jamaah": "" },
+      { "name": "Zuhr", "begins": "1.05pm", "jamaah": "1.30pm" },
+      { "name": "Asr", "begins": "5.30pm", "jamaah": "6.15pm" },
+      { "name": "Maghrib", "begins": "8.40pm", "jamaah": "8.45pm" },
+      { "name": "Isha", "begins": "10.10pm", "jamaah": "10.30pm" }
+    ],
+    "//jumuah": "The Friday times. One line per thing — a mosque with two jama'ahs adds a second line and the panel grows.",
+    "jumuah": [
+      { "label": "Doors open", "time": "12.30pm" },
+      { "label": "Khutbah", "time": "1.15pm" },
+      { "label": "Jama'ah", "time": "1.40pm" }
+    ],
+    "//rhythm": "The week, shown under the service table on Services. Placeholders — change them in edit mode.",
+    "rhythm": [
+      { "day": "Monday to Thursday", "time": "5.00 – 7.00pm", "detail": "Children's madrasah" },
+      { "day": "Wednesday", "time": "After Isha", "detail": "Weekly halaqah" },
+      { "day": "Friday", "time": "1.15pm", "detail": "Jumu'ah — two sittings if it is full" },
+      { "day": "Saturday", "time": "10.00am – 1.00pm", "detail": "Qur'an class for adults" },
+      { "day": "Sunday", "time": "Occasional", "detail": "Talks, open days and community work" }
+    ],
+    "//donate": "Where the Donate buttons point. Paste your Stripe payment links and your LaunchGood campaign URL in edit mode. Any left blank simply is not shown on the page.",
+    "donate": {
+      "oneOff": "",
+      "launchgood": "",
+      "monthly": {
+        "m5": "",
+        "m10": "",
+        "m25": "",
+        "m50": "",
+        "m100": ""
+      }
+    },
+    "//shareImageUrl": "The picture shown when a link to the site is pasted into WhatsApp. Landscape, about 1200x630.",
+    "shareImageUrl": ""
+  },
+  "//events": "Three PLACEHOLDERS so the pages can be seen working — edit them or delete them. The menu counts these, the homepage picks its featured event and its cards out of them, and /events splits them into upcoming and past from the date alone. Two are dated ahead and one behind, so both groups appear.",
+  "events": [
+    {
+      "id": "event-seed-1",
+      "slug": "friday-night-halaqah",
+      "title": "Friday Night Halaqah",
+      "category": "Talk",
+      "date": "2026-10-16",
+      "time": "After Isha",
+      "location": "Main hall",
+      "summary": "A short reminder after Isha, tea afterwards, and everyone is welcome.",
+      "body": "A weekly circle in the main hall, straight after the Isha jama'ah.\n\nIt runs for about forty minutes with questions at the end, and there is tea afterwards. Bring somebody with you — there is nothing to book and nothing to bring.",
+      "imageUrl": "",
+      "posterUrl": "",
+      "signUpUrl": "",
+      "featured": true,
+      "published": true,
+      "imageAlt": "",
+      "posterAlt": ""
+    },
+    {
+      "id": "event-seed-2",
+      "slug": "open-day",
+      "title": "Open Day",
+      "category": "Community",
+      "date": "2026-11-07",
+      "time": "11am – 4pm",
+      "location": "Taiba Islamic Centre",
+      "summary": "The doors open to the whole neighbourhood — a tour, a talk and lunch.",
+      "body": "Once a year we open the building to everybody on the street, Muslim or not.\n\nThere is a tour of the prayer hall, a short talk about what happens here through the week, and lunch. Come at any point in the day — you do not need to stay for all of it.",
+      "imageUrl": "",
+      "posterUrl": "",
+      "signUpUrl": "",
+      "featured": false,
+      "published": true,
+      "imageAlt": "",
+      "posterAlt": ""
+    },
+    {
+      "id": "event-seed-3",
+      "slug": "community-iftar-2026",
+      "title": "Community Iftar",
+      "category": "Ramadan",
+      "date": "2026-03-21",
+      "time": "At Maghrib",
+      "location": "Main hall",
+      "summary": "Two hundred people, one long table, every night of the last ten.",
+      "body": "The iftar we put on through the last ten nights of Ramadan.\n\nThis one has been and gone — it is here so you can see what the past section looks like. Delete it once there is a real one to put in its place.",
+      "imageUrl": "",
+      "posterUrl": "",
+      "signUpUrl": "",
+      "featured": false,
+      "published": true,
+      "imageAlt": "",
+      "posterAlt": ""
+    }
+  ],
+  "//services": "The rows in the table on Services, and the first six are also the tiles on the homepage. The menu counts these too. These six are PLACEHOLDERS so the page can be seen working — edit or delete them in edit mode. Every grid on the site is designed to look right from the very first record, so there is no minimum number you need before the page reads properly.",
+  "services": [
+    {
+      "id": "service-seed-1",
+      "slug": "daily-prayers",
+      "name": "Daily Prayers",
+      "type": "Five times a day",
+      "description": "The five prayers in congregation, every day of the year. The times are on the door and on this site.",
+      "imageUrl": "",
+      "order": 1,
+      "published": true,
+      "imageAlt": ""
+    },
+    {
+      "id": "service-seed-2",
+      "slug": "jumuah",
+      "name": "Jumu'ah",
+      "type": "Fridays",
+      "description": "The Friday khutbah and prayer. Come early — the hall fills from the back.",
+      "imageUrl": "",
+      "order": 2,
+      "published": true,
+      "imageAlt": ""
+    },
+    {
+      "id": "service-seed-3",
+      "slug": "quran-classes",
+      "name": "Qur'an Classes",
+      "type": "Weekday evenings",
+      "description": "Children's madrasah through the week, and a class for adults at the weekend.",
+      "imageUrl": "",
+      "order": 3,
+      "published": true,
+      "imageAlt": ""
+    },
+    {
+      "id": "service-seed-4",
+      "slug": "funerals",
+      "name": "Funerals & Janazah",
+      "type": "Whenever needed",
+      "description": "Ghusl, the janazah prayer, and help with the paperwork and the burial. Ring the office at any hour.",
+      "imageUrl": "",
+      "order": 4,
+      "published": true,
+      "imageAlt": ""
+    },
+    {
+      "id": "service-seed-5",
+      "slug": "marriages",
+      "name": "Marriages",
+      "type": "By appointment",
+      "description": "Nikah at the centre, with the imam. Speak to the office well before the date.",
+      "imageUrl": "",
+      "order": 5,
+      "published": true,
+      "imageAlt": ""
+    },
+    {
+      "id": "service-seed-6",
+      "slug": "community-support",
+      "name": "Community Support",
+      "type": "Ongoing",
+      "description": "Food parcels, visits to the housebound, and a hand for anybody on the street who needs one.",
+      "imageUrl": "",
+      "order": 6,
+      "published": true,
+      "imageAlt": ""
+    }
+  ],
+  "//clips": "Short films for the Recent clips grid on the homepage. That section hides itself completely while this is empty.",
+  "clips": []
+}

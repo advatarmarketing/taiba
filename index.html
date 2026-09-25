@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Taiba Islamic Centre</title>
+<meta name="description" content="Taiba Islamic Centre — a mosque and community centre: daily prayers, Jumu'ah, Qur'an classes and a place for the whole family.">
+<meta name="theme-color" content="#FBF9F4">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Taiba Islamic Centre">
+<meta property="og:title" content="Taiba Islamic Centre">
+<meta property="og:description" content="A mosque and community centre: daily prayers, Jumu'ah, Qur'an classes and a place for the whole family.">
+<meta name="twitter:card" content="summary_large_image">
+
+<!--
+  TWO FAMILIES, FOUR WEIGHTS, AND NOTHING ELSE.
+
+    Cormorant Garamond  500, 600   every heading
+    Plus Jakarta Sans   400, 500   everything else
+
+  The serif is here because the wordmark in the logo is drawn in one: tall
+  open capitals with fine hairlines. The sans is here because a serif at 13px
+  in a form field is a struggle, and half this site is small text.
+
+  `preconnect` opens the connection to Google Fonts early, so the font isn't
+  left waiting on a handshake.
+
+  The stylesheet itself is loaded WITHOUT BLOCKING THE PAGE. An ordinary
+  <link rel=stylesheet> on somebody else's server holds the first paint until
+  it answers — the better part of a second on a phone, for about a kilobyte.
+  The media="print" trick asks the browser for it as a print stylesheet, which
+  it fetches without waiting, and the onload switches it to the real one the
+  moment it lands. The <noscript> copy covers a browser with JavaScript off.
+
+  The cost is that the first paint may use the fallback face for a moment.
+  `display=swap` means that would happen anyway; this only makes it likelier,
+  and a page you can read in a plain font beats a blank one in the right font.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500&display=swap">
+<noscript>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500&display=swap">
+</noscript>
+
+<link rel="stylesheet" href="/styles.css">
+
+<!--
+  THE ICONS — the little picture in the browser tab, on a bookmark, and on a
+  phone's home screen if somebody saves the site there.
+
+  All of them are the ARCH in white on the brand navy, generated from
+  assets/logo-square-light.png. They are DELIBERATELY not transparent: a
+  transparent icon is composited on black by iOS and disappears against a dark
+  browser tab strip, so every one of these is a solid tile. iOS rounds the
+  corners itself — the file must be square.
+
+  It is the arch alone and not the whole logo, because at 32px "ISLAMIC
+  CENTRE" is four grey smudges while an arch is still an arch.
+
+  To rebuild them after changing the logo, see "Rebuilding the icons" in the
+  README.
+-->
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<!--
+  THE PRELOADER SWITCH.
+
+  This runs before the browser has painted a single pixel, which is the whole
+  point: the blue panel has to be covering the page from the very first frame,
+  or you get a flash of half-built page and then a loading screen over the top
+  of it, which looks worse than no loading screen at all.
+
+  It only runs on a first load of the homepage. It is skipped entirely if the
+  visitor has asked their device to reduce motion, and it can be switched off
+  by adding ?loader=0 to the address — handy while working on the site.
+
+  The timer at the end is a safety net. If app.js never runs — a bad deploy, a
+  JavaScript error, a browser that refuses the module — the attribute is
+  removed anyway and the page is released. A loading screen that never lifts is
+  the one failure here that makes the site completely unusable.
+-->
+<script>
+  (function () {
+    var root = document.documentElement;
+    var reduced = false;
+    try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    var home = location.pathname === '/' || location.pathname === '/index.html';
+    if (home && !reduced && !/[?&]loader=0(&|$)/.test(location.search)) {
+      root.setAttribute('data-loading', '');
+      setTimeout(function () { root.removeAttribute('data-loading'); }, 8000);
+    }
+  })();
+</script>
+
+<!-- The preloader shows this, so it must not be fetched a moment too late. -->
+<link rel="preload" as="image" href="/assets/logo-light.png">
+</head>
+<body>
+
+<!-- Skip link: the first thing a keyboard user reaches on every page. -->
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!--
+  The preloader itself. It is in the markup rather than built by app.js for the
+  same reason the script above is inline — it has to exist before anything
+  else does. CSS shows it only while <html data-loading> is set; app.js takes
+  that attribute off when the first page is ready, and it slides up and away.
+-->
+<div class="preloader" aria-hidden="true">
+  <img class="preloader-logo" src="/assets/logo-light.png" alt="" width="322" height="570" decoding="async">
+</div>
+
+<!--
+  THE WHOLE SITE RENDERS INTO HERE.
+
+  app.js writes the header, the menu, the page and the footer into #app every
+  time you navigate. There is deliberately no markup for them in this file:
+  one source of truth in app.js is what makes the data-copy system work
+  everywhere at once.
+-->
+<div id="app" class="app"></div>
+
+<!-- Shown only if JavaScript is switched off. -->
+<noscript>
+  <div class="noscript">
+    <h1>Taiba Islamic Centre</h1>
+    <p>This site needs JavaScript switched on. Sorry about that.</p>
+  </div>
+</noscript>
+
+<!--
+  THE THREE LIBRARIES ARE NOT LOADED HERE ANY MORE.
+
+    lenis          smooth scrolling
+    gsap           animation
+    ScrollTrigger  ties an animation to the scroll position
+
+  All three exist for one audience: somebody on a desktop, with a mouse, who
+  has not asked their device to reduce motion. On a phone none of the three is
+  ever used — Lenis is deliberately off on touch, and the only thing pinned by
+  ScrollTrigger is the desktop manifesto. Loading them here meant sending
+  117 KiB of JavaScript to every phone to do nothing at all.
+
+  So app.js fetches them itself, and only once it has decided they are wanted
+  — see loadMotionLibraries(). They still put themselves on `window` and are
+  still the plain npm builds copied into /vendor by scripts/vendor.mjs when
+  you run `npm install`, so there is still no build step. Don't edit them.
+-->
+<script src="/app.js" type="module"></script>
+</body>
+</html>

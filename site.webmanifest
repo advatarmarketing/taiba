@@ -1,0 +1,27 @@
+{
+  "name": "Taiba Islamic Centre",
+  "short_name": "Taiba",
+  "description": "A mosque and community centre: daily prayers, Jumu'ah, Qur'an classes and a place for the whole family.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A2C6C",
+  "theme_color": "#FBF9F4",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}

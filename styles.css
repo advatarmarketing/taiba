@@ -1,0 +1,3508 @@
+/* ==========================================================================
+   Taiba Islamic Centre — design system
+
+   The visual foundation: every named value the rest of the file, and every
+   page, is built out of.
+
+     1. Tokens        every named value: colour, type, spacing, motion
+     2. Reset         the browser defaults worth overriding
+     3. Chrome        header, menu overlay, footer
+     4. Behaviours    scroll reveal, the custom cursor, smooth scrolling
+     5. Reduced motion  one block that switches all of it off
+     6. Edit mode     the admin-only controls (invisible to visitors)
+     7-11.            the pages
+
+   Rule of thumb: a section should never write a raw colour, easing curve or
+   spacing number. If you find yourself typing a hex code below part 1, the
+   token is missing — add it there instead.
+   ========================================================================== */
+
+
+/* ========================================================== 1. Tokens ===== */
+
+:root {
+
+  /* ---- Colour -----------------------------------------------------------
+
+     EVERY COLOUR HERE CAME OUT OF THE LOGO. The navy and the gold were
+     measured off the artwork itself — #0A2C6C and #B5812A — and nothing has
+     been invented beside them.
+
+     There are three jobs, and a colour that is right for one is usually wrong
+     for the other two:
+
+       --brand   #0A2C6C  LARGE FILLS. The donate band, the loading panel, a
+                          wash over a photograph, the footer. Deep and quiet,
+                          which is what you want across half a screen.
+
+       --gold    #B5812A  DECORATION AT SIZE. Hairlines, the arch outline, a
+                          rule under a heading, an icon. Never small text on
+                          the page — see below.
+
+       --accent  #96661A  SMALL TEXT. The uppercase labels, links, the "Type"
+                          column. A deeper cut of the same gold.
+
+     Why the accent is not simply --gold: the logo gold measures 3.27:1
+     against this page, and WCAG AA asks for 4.5:1 on normal text. At 12px —
+     which is exactly the size the labels are set at — that is the difference
+     between a word you read and a word you squint at. #96661A is the same
+     hue pushed down until it measures 4.77:1, so the labels keep the gold of
+     the logo and stay legible. The full-strength gold is still used at every
+     size where contrast is not the question: rules, arches, icons, and
+     anything sitting on navy.
+
+     On navy those two swap over. --gold-soft is the one that belongs there
+     (7.7:1), because a dark gold on a dark blue is nearly invisible.
+  */
+
+  --page:   #FBF9F4;   /* warm parchment, not white */
+  --sand:   #F3EDE1;   /* the second surface — a section that steps forward */
+  --ink:    #10141C;   /* near-black with a trace of navy in it (17.7:1) */
+
+  --brand:       #0A2C6C;   /* large fills — measured off the logo */
+  --brand-deep:  #061D4A;   /* a pressed/hover state on top of --brand */
+  --brand-wash:  rgba(10, 44, 108, 0.06);
+  --on-brand:    #F7F4EC;   /* text sitting ON a --brand fill (12.0:1) */
+
+  --gold:        #B5812A;   /* the logo gold — rules, arches, icons */
+  --gold-soft:   #E2C185;   /* gold that has to work ON navy (7.7:1) */
+  --gold-line:   rgba(181, 129, 42, 0.32);   /* a hairline that reads as gold */
+
+  --accent:       #96661A;  /* small text — 4.77:1 on --page, passes AA */
+  --accent-hover: #6E4A11;  /* accent TEXT darkens on hover */
+
+  /* A pale wash of the accent, for hover backgrounds and quiet panels. */
+  --accent-soft:       rgba(181, 129, 42, 0.12);
+  --accent-soft-hover: rgba(181, 129, 42, 0.20);
+
+  /*
+    Gold text sitting ON that pale wash. --accent measures 4.77:1 on the page
+    and 4.42:1 on the wash — which does not pass, because the wash is gold
+    too and eats most of the difference. This one measures 6.1:1 on it.
+  */
+  --accent-on-wash: #7A5312;
+
+  /* Greys, all derived from --ink so they sit on the page rather than beside it. */
+  --ink-70:     rgba(16, 20, 28, 0.70);   /* secondary text */
+  --ink-60:     rgba(16, 20, 28, 0.62);   /* captions, meta, the edit UI */
+  --hairline:   rgba(16, 20, 28, 0.13);   /* rules and borders */
+  --page-scrim: rgba(251, 249, 244, 0.93);/* the header background once scrolled */
+
+
+  /* ---- Type -------------------------------------------------------------
+
+     TWO FAMILIES, and they never do each other's job.
+
+       --font-display   Cormorant Garamond, 500 and 600.
+                        Every heading. A Garamond cut with tall, open capitals
+                        and fine hairlines — the same classical serif the
+                        wordmark in the logo is drawn in, which is the whole
+                        reason it is here. Headings are MIXED CASE, not
+                        uppercase: at display sizes the capitals in this face
+                        are the point, and shouting every word flattens them.
+
+       --font           Plus Jakarta Sans, 400 and 500.
+                        Everything else — body copy, navigation, buttons,
+                        forms, the edit UI. Quiet, modern, and unbothered at
+                        13px, which is where a serif starts to struggle.
+
+     The one place the sans goes uppercase is .label: 12px, letter-spaced
+     0.16em, in --accent. That tracking is taken straight off the logo, where
+     T A I B A and ISLAMIC CENTRE are both set wide. It is the small move that
+     ties the type back to the mark, so do not tighten it.
+  */
+
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-display: 500;   /* the serif's normal weight for a heading */
+  --weight-strong:  600;   /* the hero, and a heading that has to carry */
+
+  /* Display scale. Each step is clamp(minimum, grows-with-viewport, maximum):
+     it never drops below the first number on a phone, never exceeds the last
+     on a wide monitor, and scales smoothly in between. */
+  --display-1: clamp(3rem,    11vw, 11.5rem);   /* hero, one or two words */
+  --display-2: clamp(2.35rem, 7.5vw, 6.5rem);   /* section openers */
+  --display-3: clamp(1.9rem,  5vw,   4rem);     /* sub-sections */
+  --display-4: clamp(1.4rem,  2.8vw, 2.25rem);  /* card and row headings */
+  /* The smallest heading. 20px minimum, not 18px: 17px body sits under it and
+     one pixel of difference is not a heading, it is an accident. */
+  --heading:   clamp(1.25rem, 2vw, 1.55rem);
+
+  --body:  17px;    /* body copy — everything reads from this */
+  --small: 15px;    /* nav links, footer */
+  --micro: 13px;    /* captions, meta, the edit UI */
+  --label: 12px;    /* uppercase labels, in --accent */
+
+  --line-head:  1.02;   /* headings — a serif needs more room than a grotesk */
+  --line-body:  1.35;   /* body copy */
+  --line-loose: 1.62;   /* long paragraphs, where 1.35 gets tight */
+
+  --track-head:  -0.012em;  /* headings: the serif sets a touch wide */
+  --track-label:  0.16em;   /* uppercase labels — taken off the logo */
+
+
+  /* ---- Spacing ----------------------------------------------------------
+
+     Everything is built off one 64px unit. The header height and the main
+     grid gap are that same number, which is what holds the layout together. */
+
+  --unit: 64px;
+
+  --space-1:  16px;   /* --unit / 4  — inside a component */
+  --space-2:  32px;   /* --unit / 2  — between components */
+  --space-3:  64px;   /* --unit      — between groups */
+  --space-4: 128px;   /* --unit * 2  — between sections */
+  --space-5: 192px;   /* --unit * 3  — around a section that needs air */
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --max-w:  1560px;   /* the content column, a little narrower than full-bleed */
+
+
+  /* ---- The arch ---------------------------------------------------------
+
+     THE ONE SHAPE THE WHOLE SITE IS BUILT ON. The logo is an arch, so the
+     pictures are arches: the hero, the service tiles, the portrait beside
+     the welcome. It is a border-radius with two radii per corner — a wide
+     horizontal one and a shallow vertical one — which gives the soft ogee
+     curve of the mark rather than a semicircle stuck on a box.
+
+     --arch        the full shape, for a tall picture
+     --arch-soft   the same idea, flattened, for something wide and short
+     --radius      everything else. Almost nothing is rounded.
+  */
+
+  --arch:      48% 48% 0 0 / 30% 30% 0 0;
+  --arch-soft: 28% 28% 0 0 / 14% 14% 0 0;
+  --radius:    2px;
+
+
+  /* ---- Motion -----------------------------------------------------------
+
+     THE signature curve. Nearly every transition on the site uses this one
+     easing, and using it everywhere is most of why the site feels like a
+     single piece of work rather than a pile of components.
+
+     If you are unsure what duration to use, it is 0.6s. */
+
+  --ease-ref: cubic-bezier(0.38, 0.005, 0.215, 1);
+
+  --dur-fast: 0.3s;   /* header show/hide, hovers, small state changes */
+  --dur-base: 0.6s;   /* menu, preloader, reveals — the default */
+
+  --reveal-delay: 0.1s;   /* and siblings stagger by this same amount */
+
+
+  /* ---- The custom cursor ------------------------------------------------ */
+
+  --cursor-size:  16px;
+  --cursor-grow:  2.5;    /* how much it scales over a link or button */
+  --cursor-lerp:  0.15;   /* read by app.js — how closely it chases the mouse */
+
+
+  /* ---- Layers ----------------------------------------------------------- */
+
+  --z-header:    100;
+  --z-menu:      110;   /* above the header, so the menu covers it */
+  /*
+    The cursor sits ABOVE the dialogs, and that is the whole point of the
+    number: with it below, the moment a dialog opened the real arrow was still
+    hidden by `cursor: none` while the custom one was painted behind the
+    panel — a form you could not see the pointer in at all.
+  */
+  --z-cursor:    600;
+  --z-modal:     300;
+  --z-toast:     400;
+  --z-editbar:   500;
+  --z-preloader: 1000;  /* above everything */
+
+
+  /* ---- Fixed proportions ------------------------------------------------ */
+
+  /* The service rows with a hover image that tracks the cursor. */
+  --row-height:       64px;
+  --row-title:        17px;
+  --row-figure-ratio: 17 / 19;
+  --row-figure-width: 18%;
+
+  /* Full-width video sections. */
+  --video-ratio: 33 / 20;
+}
+
+
+/* =========================================================== 2. Reset ===== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--body);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/*
+  Headings carry no default size or margin — each section sets its own. What
+  they DO carry is the house treatment, and all of it is here so that no
+  section ever has to name the serif itself: Cormorant, 500, tight lines, and
+  MIXED CASE.
+
+  The mixed case is a decision, not an omission. This face is drawn around its
+  capitals — the A, the T, the R — and setting a whole heading in them wastes
+  the thing the face is for, as well as costing about a fifth of the reading
+  speed. Uppercase is kept for .label, at 12px, where the wide tracking off
+  the logo is doing the work instead.
+*/
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  line-height: var(--line-head);
+  letter-spacing: var(--track-head);
+  text-transform: none;
+}
+
+p, figure, blockquote, ul, ol, dl { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+
+a { color: inherit; text-decoration: none; }
+
+img, video, svg, canvas { display: block; max-width: 100%; }
+img, video { height: auto; }
+
+button, input, select, textarea { font: inherit; color: inherit; margin: 0; }
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+/* A visible focus ring, but only for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  top: calc(var(--space-1) + env(safe-area-inset-top));
+  left: calc(var(--space-1) + env(safe-area-inset-left));
+  z-index: calc(var(--z-preloader) + 1);
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--page);
+  transform: translateY(-200%);
+  transition: transform var(--dur-fast) var(--ease-ref);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+.noscript { padding: var(--space-3) var(--gutter); }
+
+/*
+  A content column. Used by the header, the footer and every section.
+
+  The side padding is the gutter OR the phone's safe area, whichever is
+  bigger. On a notched phone held sideways the safe area can be 44px or so,
+  which is wider than the 16px gutter a narrow screen gets — without this,
+  the first letter of every line sits under the notch. env() is 0 on every
+  device that hasn't got one, so nothing else changes.
+*/
+.shell {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left))
+                  max(var(--gutter), env(safe-area-inset-right));
+}
+
+
+/* ---- Type utilities -----------------------------------------------------
+   The display scale as classes, so markup can reach a step by name.
+   ------------------------------------------------------------------------ */
+
+.display-1 { font-size: var(--display-1); }
+.display-2 { font-size: var(--display-2); }
+.display-3 { font-size: var(--display-3); }
+.display-4 { font-size: var(--display-4); }
+.heading   { font-size: var(--heading); }
+
+/* All five inherit the serif from the h1–h6 rule above when they are used on
+   a heading tag. On anything else — a <span> inside a button, say — add
+   .display to get the identical treatment. */
+.display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  line-height: var(--line-head);
+  letter-spacing: var(--track-head);
+  text-transform: none;
+}
+
+/* The heavier cut, for the two or three headings a page that have to carry
+   the whole screen: the hero, the donate band. */
+.display-strong { font-weight: var(--weight-strong); }
+
+.body-text  { font-size: var(--body);  line-height: var(--line-body); }
+.small-text { font-size: var(--small); }
+.micro      { font-size: var(--micro); color: var(--ink-60); }
+
+/*
+  The small uppercase label — the accent's main job, and the only uppercase
+  on the site.
+
+  font-family is named explicitly because a label is often a <p> inside a
+  heading block or a <span> inside an <h2>, where it would otherwise inherit
+  the serif; at 12px with this much tracking the sans is the one that holds
+  together. The tracking is the logo's own.
+*/
+.label {
+  font-family: var(--font);
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/*
+  A short gold rule, the width of a word. Used under a label or between a
+  heading and what follows it — it is the diamond rule at the foot of the
+  logo, reduced to its simplest form.
+*/
+.rule {
+  display: block;
+  width: 56px;
+  height: 1px;
+  border: 0;
+  margin: var(--space-1) 0 0;
+  background: var(--gold);
+}
+.rule--centre { margin-inline: auto; }
+
+/* Accent link text. Darkens on hover rather than lightening, because a
+   lighter blue would drop below the contrast minimum. */
+.text-link {
+  color: var(--accent);
+  transition: color var(--dur-fast) var(--ease-ref);
+}
+.text-link:hover { color: var(--accent-hover); }
+
+/* A long paragraph wants a looser line than the 1.35 the UI is set at. */
+.prose { line-height: var(--line-loose); max-width: 62ch; }
+
+/*
+  THE ARCH. A picture cut to the shape of the logo.
+
+  It is only ever applied to a wrapper that clips its contents, never to the
+  <img> itself — an arch on the image leaves the frame behind it square, and
+  the join shows the moment anything is behind it.
+*/
+.arch       { border-radius: var(--arch); overflow: hidden; }
+.arch--soft { border-radius: var(--arch-soft); overflow: hidden; }
+
+
+/* ========================================================== 3. Chrome ===== */
+
+/* ---- Header -------------------------------------------------------------
+
+   Fixed, 64px tall — the same number as the spacing unit. The logo on the
+   left; the Menu trigger and a Donate button on the right. There are no nav
+   links in the bar itself: everything lives in the menu overlay.
+
+   Two independent states, each its own attribute, so they never fight:
+
+     data-hidden       away when you scroll down, back the instant you
+                       scroll up
+     data-transparent  no background while it sits over the hero; solid
+                       --page once the hero has gone by
+
+   Both animate on the SAME 0.3s curve, declared once below.
+   ------------------------------------------------------------------------ */
+
+.header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--z-header);
+  height: var(--unit);
+  display: flex;
+  align-items: center;
+  background: var(--page);
+
+  transition:
+    transform  0.3s var(--ease-ref),
+    background 0.3s var(--ease-ref);
+}
+
+/* Over the hero: no background, so the hero runs right up under it. */
+.header[data-transparent='true'] { background: transparent; }
+
+/* Scrolled down: gone. Scrolled up: back. */
+.header[data-hidden='true'] { transform: translateY(-100%); }
+
+/*
+  A gold hairline under the bar, and ONLY once the bar has a background. Over
+  the hero there is no line, because a rule hanging across a photograph is a
+  scratch on it rather than an edge.
+*/
+.header::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: var(--gold-line);
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-ref);
+}
+.header[data-transparent='true']::after { opacity: 0; }
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  /* Same safe-area rule as .shell, so the logo and the Menu word line up with
+     the page underneath them on a notched phone. */
+  padding-inline: max(var(--gutter), env(safe-area-inset-left))
+                  max(var(--gutter), env(safe-area-inset-right));
+}
+
+/*
+  THE LOCKUP: the arch as a picture, the name as live text beside it.
+
+  The supplied artwork is 627px wide, which leaves "ISLAMIC CENTRE" about
+  14px tall in it — soft at every size a header is drawn at. So only the arch
+  travels as a picture (mark-dark.png / mark-light.png, swapped by app.js over
+  a dark hero) and the two words are set in the page, in the heading serif,
+  with the logo's own wide tracking. Sharp on any screen, and a search engine
+  reads the organisation's name rather than looking at a rectangle.
+
+  Everything is sized by HEIGHT, so swapping the two files cannot shift the
+  layout by a pixel.
+*/
+.brand { display: flex; align-items: center; }
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.brand-mark {
+  height: 38px;
+  width: auto;
+}
+
+.brand-word {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* The two lines are set tight against each other on purpose — they read as
+     one block, the way they do in the artwork. */
+  gap: 3px;
+  padding-top: 1px;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: var(--weight-strong);
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* The tracking adds a gap after the last letter that the eye reads as a
+     lopsided lockup. Pulling it back re-centres the word over the line
+     underneath it. */
+  margin-right: -0.2em;
+}
+
+.brand-sub {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-right: -0.2em;
+  transition: color 0.3s var(--ease-ref);
+}
+
+/* On a narrow phone the second line is the first thing to go: the arch and
+   TAIBA are enough to know where you are, and the bar has 320px to fit a
+   Menu word into as well. */
+@media (max-width: 420px) {
+  .brand-sub { display: none; }
+  .brand-mark { height: 34px; }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The Menu trigger. A word, not an icon — it is the only way into the site's
+   navigation, so it should say what it is. */
+.menu-trigger {
+  font-size: var(--small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  padding: 10px 4px;
+  transition: color 0.3s var(--ease-ref);
+}
+.menu-trigger:hover { color: var(--accent); }
+
+/* Donate: the one filled control in the bar. Navy, because it is the thing
+   the bar is there to ask for. */
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 20px;
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: var(--on-brand);
+  border-radius: var(--radius);
+  font-size: var(--small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  transition:
+    background 0.3s var(--ease-ref),
+    color      0.3s var(--ease-ref),
+    border-color 0.3s var(--ease-ref);
+}
+.header-cta:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+
+/* Over a dark hero the bar's own contents have to invert too. The Donate
+   button loses its navy fill there — navy on a dark photograph is a hole —
+   and becomes an outline in the pale gold instead. */
+.header[data-transparent='true'][data-on-dark='true'] { color: var(--page); }
+.header[data-transparent='true'][data-on-dark='true'] .brand-sub { color: var(--gold-soft); }
+.header[data-transparent='true'][data-on-dark='true'] .header-cta {
+  background: transparent;
+  border-color: var(--gold-soft);
+  color: var(--page);
+}
+.header[data-transparent='true'][data-on-dark='true'] .header-cta:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+  color: var(--brand);
+}
+
+@media (max-width: 600px) {
+  /* On a narrow phone the Donate button and the Menu word compete for the
+     same few centimetres. The button goes; Donate is in the menu. */
+  .header-cta { display: none; }
+}
+
+
+/* ---- Menu overlay -------------------------------------------------------
+
+   A full-height panel that slides down from above the screen.
+
+   z-index 110 puts it ABOVE the header, on purpose: the header stays exactly
+   where it is underneath and is simply covered, rather than having to animate
+   itself out of the way at the same time.
+
+   `visibility 0s linear 0.6s` is the part that is easy to get wrong. It holds
+   visibility:visible for the whole 0.6s slide and only switches to hidden at
+   the very end — so the panel stays hittable and on screen while it moves. Take
+   the delay off and the panel vanishes instantly and you watch nothing slide
+   anywhere.
+   ------------------------------------------------------------------------ */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu);
+  /*
+    HEIGHT, AND WHY IT IS NOT 100vh.
+
+    On iOS, 100vh is the height of the window with the address bar HIDDEN —
+    so a panel set to 100vh is taller than the screen you can actually see,
+    and its bottom is pushed under the browser chrome. `height: 100%` against
+    a `position: fixed; inset: 0` box is simply the visible viewport, which is
+    right everywhere. `dvh` is the modern spelling of the same idea and is
+    used where a browser understands it.
+  */
+  height: 100%;
+  height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /*
+    THE SAFE AREA.
+
+    On a phone with a notch, a camera bar or a home indicator, part of the
+    screen is not ours to draw in. `env(safe-area-inset-*)` is how the browser
+    tells us how much, and it is 0 on every device without one — so this costs
+    nothing anywhere else. `max()` keeps our own padding when it is already
+    the larger of the two, which it usually is.
+
+    It matters most here and on the header: a full-screen panel is exactly the
+    thing that ends up with its close button under a notch.
+  */
+  padding-block: max(var(--unit), env(safe-area-inset-top))
+                 max(var(--unit), env(safe-area-inset-bottom));
+  padding-inline: max(var(--gutter), env(safe-area-inset-left))
+                  max(var(--gutter), env(safe-area-inset-right));
+
+  /*
+    NAVY, not the page colour. The menu is the one moment the site stops
+    being a document and becomes a place — the same panel the site opens on
+    while it loads, so arriving at it feels like coming back to the front
+    rather than having a white sheet dropped over the page.
+  */
+  background: var(--brand);
+  color: var(--on-brand);
+  overflow-y: auto;
+
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform  0.6s var(--ease-ref),
+    visibility 0s linear 0.6s;
+}
+
+.menu[data-open='true'] {
+  transform: translateY(0);
+  visibility: visible;
+  /* Opening, visibility has to switch at once — a 0.6s delay here would mean
+     the panel slid down while still hidden. */
+  transition:
+    transform  0.6s var(--ease-ref),
+    visibility 0s linear 0s;
+}
+
+/* The X. Sits in the same 64px band as the header underneath it. */
+.menu-close {
+  position: absolute;
+  top: 0;
+  right: var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--unit);
+  font-size: var(--small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  transition: color 0.3s var(--ease-ref);
+}
+.menu-close:hover { color: var(--gold-soft); }
+
+.menu-links {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+}
+
+/* A hairline between the links, in gold at a whisper. It turns a stack of
+   words into a list you can run your eye down — and it is the only rule on
+   the panel, so it has to be quiet. */
+.menu-links li + li { border-top: 1px solid rgba(226, 193, 133, 0.18); }
+
+/*
+  The stagger.
+
+  Each item waits 0.15s for the panel to get under way, then they arrive 0.06s
+  apart — app.js numbers them, and --i is that number. Each one takes 0.5s to
+  fade up and rise the last 20px.
+
+  The delay lives on the OPEN state only. On the way out they all leave at
+  once, because a reverse stagger on close reads as hesitation.
+*/
+.menu-links li {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity   0.5s var(--ease-ref) 0s,
+    transform 0.5s var(--ease-ref) 0s;
+}
+
+.menu[data-open='true'] .menu-links li {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(0.15s + (var(--i, 0) * 0.06s));
+}
+
+.menu-link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding-block: clamp(8px, 1.2vh, 18px);
+  font-family: var(--font-display);
+  font-size: var(--display-3);
+  font-weight: var(--weight-display);
+  line-height: var(--line-head);
+  letter-spacing: var(--track-head);
+  transition:
+    color     0.3s var(--ease-ref),
+    padding-left 0.3s var(--ease-ref);
+}
+/* The link steps to the right as you point at it — the same amount, every
+   time, on the same curve as everything else. */
+.menu-link:hover {
+  color: var(--gold-soft);
+  padding-left: 14px;
+}
+.menu-link[aria-current='page'] { color: var(--gold-soft); }
+
+/*
+  The live count beside a link — "Events 3", the way the reference shows
+  "Projects 12". Superscript-ish, in the accent, and absent entirely when
+  there is nothing to count.
+*/
+.menu-count {
+  font-family: var(--font);
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  color: var(--gold-soft);
+  align-self: flex-start;
+  margin-top: 0.9em;
+}
+
+/* Stops the page behind the menu scrolling while it is open.
+   The attribute is `data-menu`, not `data-menu-open` — see openMenu() in
+   app.js for why that distinction matters. */
+body[data-menu='open'] { overflow: hidden; }
+
+
+/* ---- Page + footer ------------------------------------------------------ */
+
+/* Clears the fixed header. A page with a hero handles its own top spacing,
+   because the hero is supposed to run up underneath the bar. */
+.page { min-height: 60vh; }
+.page > :first-child:not([data-hero]) { padding-top: var(--unit); }
+
+/*
+  THE FOOTER IS NAVY, and it is the third and last place on the site that
+  large colour appears — after the loading panel and the donate band. It
+  closes the page the way the header opens it, and it is why the logo down
+  there is the reversed file rather than the dark one.
+
+  It carries no top margin. Every page ends on either the donate band or a
+  full-width film, and both of those are already colour to the edge of the
+  screen — a strip of pale page between them and this would read as a gap
+  rather than as breathing room.
+*/
+.footer {
+  margin-top: 0;
+  background: var(--brand);
+  color: var(--on-brand);
+  /* The last thing on the page, so this is where the home indicator lands. */
+  padding-block: var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom));
+  font-size: var(--small);
+}
+
+/* A gold rule across the very top of it, the full width of the screen. */
+.footer { border-top: 1px solid var(--gold); }
+
+/* The lockup down here is the reversed one, and it is drawn larger than the
+   header's — this is the one place on the page with room for it. */
+.footer .brand-mark { height: 54px; }
+.footer .brand-name { font-size: 22px; }
+.footer .brand-sub  { color: var(--gold-soft); }
+
+.footer-top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.footer-links {
+  display: grid;
+  gap: 6px;
+}
+.footer-links a { transition: color 0.3s var(--ease-ref); }
+.footer-links a:hover { color: var(--gold-soft); }
+
+.footer-heading {
+  font-family: var(--font);
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: var(--space-1);
+}
+
+/* Anything on the navy that is secondary — the tagline, a "not set yet"
+   line, the small print — is the page colour held back, never a grey. A grey
+   mixed on navy goes muddy; the same colour at 70% stays the same colour. */
+.footer .micro,
+.footer .tiny { color: rgba(247, 244, 236, 0.72); }
+
+.footer .text-link { color: var(--gold-soft); }
+.footer .text-link:hover { color: var(--on-brand); }
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(226, 193, 133, 0.35);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.3s var(--ease-ref),
+    background   0.3s var(--ease-ref),
+    color        0.3s var(--ease-ref);
+}
+.social-link:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+  color: var(--brand);
+}
+
+/* A social account with no URL set yet: shown, but visibly inert, so it is
+   obvious in edit mode that there is a gap to fill. */
+.social-link[aria-disabled='true'] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(226, 193, 133, 0.22);
+  color: rgba(247, 244, 236, 0.66);
+  font-size: var(--micro);
+}
+
+/*
+  The edit-mode controls in the footer sit on navy, and every one of them is
+  drawn for the pale page. Rather than give each a second set of rules, the
+  whole edit surface down here is re-pointed at the light palette in one
+  place. A visitor never sees any of this.
+*/
+.footer .edit-chip,
+.footer .webdev-pill {
+  border-color: rgba(226, 193, 133, 0.38);
+  color: rgba(247, 244, 236, 0.88);
+}
+.footer .edit-chip:hover,
+.footer .webdev-pill:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+  color: var(--brand);
+}
+
+
+/* ---- Preloader ----------------------------------------------------------
+
+   A full-screen panel in --brand that covers the page on a first visit to the
+   homepage and then slides up and away.
+
+   Exactly the same mechanism as the menu overlay, in reverse: it starts on
+   screen and leaves upward, and the `visibility 0s linear 0.6s` again holds it
+   present for the whole slide instead of blinking out.
+
+   It is only ever on screen while <html data-loading> is set, which an inline
+   script in index.html decides before the first paint.
+   ------------------------------------------------------------------------ */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+
+  /* The resting state IS "gone" — so if the attribute is never set, the panel
+     is already out of the way and nothing has to run for the site to work. */
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform  0.6s var(--ease-ref),
+    visibility 0s linear 0.6s;
+}
+
+html[data-loading] .preloader {
+  transform: translateY(0);
+  visibility: visible;
+  transition:
+    transform  0.6s var(--ease-ref),
+    visibility 0s linear 0s;
+}
+
+.preloader-logo {
+  /* The complete stacked logo — arch, name and rule — is UPRIGHT, roughly
+     4:7. Sized by its width, that makes it a tall block, so the width is kept
+     modest and the height is what fills the panel. It is also capped against
+     the viewport HEIGHT, or on a phone held sideways the logo is taller than
+     the screen it is centred in. */
+  width: min(200px, 44vw, 30vh);
+  height: auto;
+}
+
+/* Nothing scrolls while the panel is up. */
+html[data-loading] body { overflow: hidden; }
+
+/* Belt and braces: never show a loading screen to someone who asked for less
+   motion, even if the inline script somehow let it through. */
+@media (prefers-reduced-motion: reduce) {
+  .preloader { display: none !important; }
+  html[data-loading] body { overflow: auto; }
+}
+
+
+/* ====================================================== 4. Behaviours ===== */
+
+/* ---- Smooth scrolling (Lenis) -------------------------------------------
+   Lenis takes over the scroll and animates it, which is why the page feels
+   weighted rather than stepped. These rules are Lenis's own required
+   stylesheet, inlined here so there is no extra file to load.
+
+   app.js only starts Lenis on a pointer device with motion allowed — see
+   mountLenis(). On a phone, or with "reduce motion" on, the browser's native
+   scrolling is used and none of these classes are ever added.
+   ------------------------------------------------------------------------ */
+
+html.lenis,
+html.lenis body { height: auto; }
+
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] { overscroll-behavior: contain; }
+
+/* An iframe would otherwise swallow the wheel events Lenis needs. */
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
+
+/* ---- Scroll reveal ------------------------------------------------------
+   The default entrance for anything arriving on screen.
+
+     data-reveal          fades in. This is the one for MEDIA — opacity only,
+                          because a photograph sliding upward looks cheap.
+     data-reveal="text"   fades in AND rises 20px. For headings and copy.
+
+   Siblings stagger: app.js numbers each one and sets --i, so the second waits
+   0.1s longer than the first, the third 0.2s, and so on. Set --i yourself
+   inline to override the order.
+   ------------------------------------------------------------------------ */
+
+[data-reveal] {
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-ref)
+              calc(var(--reveal-delay) + (var(--i, 0) * var(--reveal-delay)));
+}
+
+[data-reveal='text'] {
+  transform: translateY(20px);
+  transition:
+    opacity   var(--dur-base) var(--ease-ref) calc(var(--reveal-delay) + (var(--i, 0) * var(--reveal-delay))),
+    transform var(--dur-base) var(--ease-ref) calc(var(--reveal-delay) + (var(--i, 0) * var(--reveal-delay)));
+}
+
+[data-reveal][data-revealed] { opacity: 1; transform: none; }
+
+
+/* ---- Custom cursor ------------------------------------------------------
+   A small filled circle that chases the pointer, replacing the arrow. It is
+   OUR addition — the reference site doesn't have one.
+
+   The element only exists when app.js decides it should: never on a touch
+   screen, never under "reduce motion". Where it does exist, the real arrow is
+   hidden, except over anything you type into — losing the I-beam in a text
+   box makes the box feel broken.
+   ------------------------------------------------------------------------ */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  margin: calc(var(--cursor-size) / -2) 0 0 calc(var(--cursor-size) / -2);
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;   /* it must never intercept a click */
+  mix-blend-mode: normal;
+  z-index: var(--z-cursor);
+
+  /* Position AND scale are written together by app.js on every frame, so
+     there is deliberately no transition on transform — a CSS transition would
+     fight the animation loop. Only the colour fades. */
+  transform: translate3d(-100px, -100px, 0) scale(1);
+  will-change: transform;
+  transition: background var(--dur-fast) var(--ease-ref),
+              opacity var(--dur-fast) var(--ease-ref);
+}
+
+/* Over a dark area — anything carrying data-cursor="invert" — it turns white. */
+.cursor[data-invert='true'] { background: #FFFFFF; }
+
+/* Hidden until the pointer has actually moved, so it doesn't sit in the
+   top-left corner on load. */
+.cursor[data-ready='false'] { opacity: 0; }
+
+/* With the custom cursor running, hide the native one... */
+body[data-cursor='on'] { cursor: none; }
+body[data-cursor='on'] a,
+body[data-cursor='on'] button { cursor: none; }
+
+/* ...except where you type, which still needs a real I-beam. */
+body[data-cursor='on'] input,
+body[data-cursor='on'] textarea,
+body[data-cursor='on'] select,
+body[data-cursor='on'] [contenteditable] { cursor: auto; }
+
+
+/* ================================================= 5. Reduced motion ====== */
+
+/*
+  One block, switching off everything that moves.
+
+  Three of the behaviours above are JavaScript, and app.js checks the same
+  setting before starting any of them: Lenis is never constructed, the cursor
+  element is never created, and the reveal observer shows every element at once
+  instead of watching for it. What is left for CSS is the transitions
+  themselves — and making sure a revealed element is VISIBLE rather than stuck
+  at opacity 0, which is what would happen if we only removed the transition.
+*/
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Everything that would have faded in is simply already there. */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Belt and braces: if the cursor element somehow exists, it isn't shown,
+     and the real arrow is never taken away. */
+  .cursor { display: none !important; }
+  body { cursor: auto !important; }
+}
+
+
+/* ======================================================= 6. Edit mode ===== */
+
+/*
+  Everything below is for the person editing the site, not for visitors. None of
+  it is even present in the page unless there is a valid login — app.js doesn't
+  render it — so this styling simply never applies to the public.
+*/
+
+/* ---- Buttons and small shared bits -------------------------------------- */
+
+/*
+  Buttons come in two strengths and nothing in between: an outline, and a
+  navy fill. The fill is --brand rather than the gold, because gold is a
+  decoration colour here and a gold button with white lettering on it fails
+  every contrast test there is.
+*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  transition: background var(--dur-fast) var(--ease-ref),
+              color      var(--dur-fast) var(--ease-ref),
+              border-color var(--dur-fast) var(--ease-ref);
+}
+.btn:hover { background: var(--brand); color: var(--on-brand); }
+
+.btn--primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.btn--primary:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+
+/* On a navy band, both of those would disappear. This one is the gold,
+   filled, with navy lettering on it — 7.7:1, and the only place the gold is
+   ever used as a fill behind words. */
+.btn--on-band {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+  color: var(--brand);
+}
+.btn--on-band:hover { background: var(--on-brand); border-color: var(--on-brand); }
+
+.btn--lg { min-height: 56px; padding: 0 32px; font-size: var(--body); }
+.btn--sm { min-height: 34px; padding: 0 12px; font-size: 13px; }
+
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--hairline);
+}
+.icon-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+.tiny { font-size: 13px; color: var(--ink-60); }
+.stack-2 { display: grid; gap: var(--space-2); }
+
+/* An empty state is a designed thing here, not a blank: a gold hairline down
+   its left edge so it reads as a deliberate note rather than as content that
+   failed to arrive. */
+.empty-state {
+  padding: var(--space-1) 0 var(--space-1) var(--space-2);
+  border-left: 1px solid var(--gold-line);
+}
+.empty-state h3 { margin-bottom: 8px; font-size: var(--heading); }
+.empty-state p { color: var(--ink-60); max-width: 54ch; }
+
+
+/* ---- "Web dev edit" button (bottom of every page) ----------------------- */
+
+.webdev-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ink-60);
+  transition: color var(--dur-fast) var(--ease-ref),
+              border-color var(--dur-fast) var(--ease-ref);
+}
+.webdev-pill:hover { color: var(--ink); border-color: var(--ink); }
+.webdev-pill .icon { width: 14px; height: 14px; }
+
+
+/* ---- The edit bar (fixed, appears once logged in) ----------------------- */
+
+.edit-bar {
+  position: fixed;
+  left: 50%;
+  /* Floats just above the home indicator rather than under it. */
+  bottom: calc(var(--space-1) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: var(--z-editbar);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 16px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--page);
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+}
+.edit-bar .icon-btn { width: 34px; height: 34px; border-radius: 999px; }
+.edit-bar .btn { border-radius: 999px; }
+.edit-bar .btn[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #FFF; }
+
+
+/* ---- Edit chips (sit next to the thing they edit) ----------------------- */
+
+.edit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 8px 4px 0;
+  padding: 6px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  transition: background var(--dur-fast) var(--ease-ref),
+              color var(--dur-fast) var(--ease-ref);
+}
+.edit-chip:hover { background: var(--accent); color: #FFF; }
+.edit-chip .icon { width: 14px; height: 14px; }
+
+
+/* ---- Click-to-edit text -------------------------------------------------
+   With "Edit text" switched on, every [data-copy] element becomes clickable.
+   ------------------------------------------------------------------------ */
+
+body[data-copy-editing='true'] [data-copy] {
+  cursor: text;
+  outline: 1px dashed rgba(47, 82, 131, 0.5);
+  outline-offset: 3px;
+}
+body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent); }
+
+.copy-editing {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px;
+  background: rgba(47, 82, 131, 0.06);
+}
+
+.copy-toolbar {
+  position: fixed;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--ink);
+  background: var(--page);
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.6);
+}
+.copy-toolbar-key {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 6px;
+  font-size: 12px;
+  color: var(--ink-60);
+}
+.copy-toolbar .btn[disabled] { opacity: 0.4; pointer-events: none; }
+
+
+/* ---- Dialogs ------------------------------------------------------------ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-1);
+  background: rgba(10, 10, 10, 0.45);
+}
+
+/*
+  `data-lenis-prevent` is in the markup, not here, but this is the place it
+  makes sense to explain it: Lenis animates the page's scroll position itself
+  and swallows the wheel, so without that attribute a wheel over an open
+  dialog scrolled the PAGE BEHIND IT while the dialog stayed put. The
+  attribute tells Lenis to keep its hands off and let this box scroll the
+  ordinary way. See openModal() in app.js.
+*/
+.modal {
+  width: min(640px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  /* Stops a scroll that reaches the end of this box from continuing into the
+     page underneath — the same problem from the other direction. */
+  overscroll-behavior: contain;
+  padding: var(--space-2);
+  border: 1px solid var(--ink);
+  background: var(--page);
+}
+
+/*
+  The clip lightbox. Everything a dialog needs — the backdrop, Escape, the
+  focus trap, putting focus back where it came from — is openModal's already;
+  this only makes the box wide enough to watch something in.
+*/
+.modal--lightbox { width: min(1100px, 100%); }
+
+.lightbox { display: grid; gap: var(--space-1); }
+
+.lightbox-video {
+  width: 100%;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: #000000;   /* letterboxing, for a clip that isn't 16:9 */
+}
+
+.modal-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+.modal-head h2 { font-size: 22px; }
+.modal-sub { margin-top: 8px; font-size: 14px; color: var(--ink-60); text-transform: none; }
+
+.editor-form { display: grid; gap: var(--space-1); }
+.editor-grid { display: grid; gap: var(--space-1); }
+
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; font-weight: var(--weight-medium); text-transform: uppercase; }
+.field input,
+.field select,
+.field textarea {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  background: #FFF;
+}
+.field textarea { min-height: 110px; resize: vertical; }
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible { border-color: var(--accent); }
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.form-status { min-height: 1.3em; font-size: 13px; color: var(--ink-60); }
+.form-status[data-state='error'] { color: #B3261E; }
+
+.admin-list { display: grid; gap: 8px; }
+.admin-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+}
+.admin-row-head code { font-size: 12px; color: var(--ink-60); }
+.admin-row-value {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-70);
+  overflow-wrap: anywhere;
+}
+
+
+/* ---- Toasts ------------------------------------------------------------- */
+
+.toast-region {
+  position: fixed;
+  right: var(--space-1);
+  bottom: var(--space-1);
+  z-index: var(--z-toast);
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--ink);
+  background: var(--page);
+  font-size: 14px;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.6);
+}
+.toast[data-tone='error'] { border-color: #B3261E; color: #B3261E; }
+
+/* ======================================================== 7. Homepage ===== */
+
+/*
+  Section rhythm. Everything on the page sits on the 64px scale, and a section
+  is two units of it top and bottom.
+*/
+.section { padding-block: var(--space-4); }
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+/* A text link with an arrow that steps forward on hover. */
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  transition: color 0.3s var(--ease-ref);
+}
+.link-arrow .icon { transition: transform 0.3s var(--ease-ref); }
+.link-arrow:hover { color: var(--accent-hover); }
+.link-arrow:hover .icon { transform: translateX(4px); }
+
+
+/* ---- Media slots --------------------------------------------------------
+
+   Every picture and film on the site goes in one of these, and so does every
+   picture and film that does not exist yet. The empty state is a designed
+   state: a dashed frame saying what belongs there, so a page with no media
+   still reads as finished rather than broken.
+   ------------------------------------------------------------------------ */
+
+.media {
+  position: relative;
+  overflow: hidden;
+  background: var(--accent-soft);
+}
+
+.media img,
+.media video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/*
+  A slot that is NOT set to cover fits its picture inside instead.
+
+  `contain` keeps the whole picture and letterboxes whatever is left over
+  against the frame's pale background — which is what you want for a poster,
+  where the artwork is the point and trimming it loses the message. `cover`
+  fills the frame and crops, which is what you want for a photograph being
+  used as a band across a page.
+*/
+.media:not([data-fit='cover']) img,
+.media:not([data-fit='cover']) video { object-fit: contain; }
+.media[data-fit='cover'] img,
+.media[data-fit='cover'] video { object-fit: cover; }
+
+.media--empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: var(--space-2);
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-on-wash);
+  text-align: center;
+}
+.media--empty .icon { width: 28px; height: 28px; stroke-width: 1.2; }
+
+.media-empty-label {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+
+/* ---- Full-width film ----------------------------------------------------
+
+   The reference's full-bleed video sections, to its measurements: a figure at
+   33:20 running the whole width of the screen with the film cropped to fill
+   it.
+
+   THE FILM HAS NO autoplay ATTRIBUTE. app.js starts it when the figure comes
+   into view and pauses it again when it leaves — see mountFilms(). That is
+   deliberate and it is the reason a page can carry three films without the fan
+   coming on.
+
+   Used twice: behind the heading above the table on What We Do, where
+   `data-has-overlay` turns on the scrim that keeps the heading readable, and
+   as the break between the clips and the donate band, where nothing sits
+   on top and the footage is shown as it is.
+   ------------------------------------------------------------------------ */
+
+/* For text that only a screen reader should get — the description of what is
+   happening in a film, for somebody who cannot watch it. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.film-section { margin-block: var(--space-4); }
+
+.film {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--video-ratio);   /* 33 / 20, from the spec */
+  overflow: hidden;
+  background: var(--accent-soft);
+}
+
+.film-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* Heavy on purpose: white type at display size has to stay readable over
+   footage nobody has graded, whatever ends up in there. */
+.film-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.55);
+}
+
+.film-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: end;
+  padding-block: var(--space-3);
+  color: var(--on-brand);
+}
+.film-label { color: var(--on-brand); }   /* see .cta-label — no opacity */
+.film-title { margin-top: var(--space-1); }
+
+.film-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-on-wash);
+  text-align: center;
+  padding: var(--space-2);
+}
+.film-empty .icon { width: 36px; height: 36px; stroke-width: 1.1; }
+
+/*
+  With no film in it yet, there is nothing to darken — so the scrim goes, the
+  heading turns dark to stay readable on the pale placeholder, and the
+  placeholder's own label moves out from under the heading.
+*/
+.film[data-has-media='false'] .film-scrim { display: none; }
+.film[data-has-media='false'] .film-overlay { color: var(--ink); }
+.film[data-has-media='false'] .film-label { color: var(--accent); opacity: 1; }
+.film[data-has-overlay='true'] .film-empty {
+  align-content: start;
+  padding-top: var(--space-2);
+}
+
+.film-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 700px) {
+  /* 33:20 is very wide for a phone; a little taller keeps the footage
+     legible without changing the shape everywhere else. */
+  .film { aspect-ratio: 4 / 3; }
+  .film-overlay { padding-block: var(--space-2); }
+}
+
+
+/* ---- 1. Hero ------------------------------------------------------------
+
+   A full screen of film, the name over it, and TODAY'S PRAYER TIMES DOCKED
+   ALONG THE BOTTOM EDGE. The header sits on top of all of it with no
+   background of its own (see [data-hero] in part 3), so the picture runs
+   right to the top of the window.
+
+   The strip is the whole reason the hero is laid out as a two-row grid rather
+   than as one block of centred text: the times have to be on the screen
+   before anybody scrolls, on a phone as well as on a monitor, because they
+   are what most people came for.
+   ------------------------------------------------------------------------ */
+
+.hero {
+  position: relative;
+  /* 100% rather than 100vh — see the note on .menu. */
+  min-height: 100%;
+  min-height: 100dvh;
+
+  /* Row one takes the space; row two is the prayer strip, at its own height. */
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+}
+
+.hero-media { position: absolute; inset: 0; }
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/*
+  The wash over the film. Without it, pale text over a bright frame of video
+  becomes unreadable the moment the footage cuts to something light — and you
+  cannot know in advance what the footage does.
+
+  It is mixed from the BRAND NAVY rather than from black. A neutral black
+  scrim over a warm photograph turns it grey; the navy keeps the picture in
+  the same family as everything around it, and costs nothing in contrast.
+*/
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 29, 74, 0.58) 0%,
+    rgba(6, 29, 74, 0.28) 38%,
+    rgba(6, 29, 74, 0.78) 100%
+  );
+}
+
+/* No film yet: no wash either, or the placeholder sits under a veil. */
+.hero[data-has-media='false'] .hero-scrim { display: none; }
+
+/*
+  No film and no poster yet: a dashed frame filling the hero saying what
+  belongs there.
+
+  Its label sits in the BOTTOM-LEFT CORNER of the frame rather than in the
+  middle of it, and that is not a nicety. The name of the centre is centred in
+  this same space, both across it and down it, and its height changes with the
+  window — so anything centred here collides with the heading at some size or
+  other. A corner is the one place nothing else ever is.
+*/
+.hero-empty {
+  position: absolute;
+  inset: calc(var(--unit) + var(--space-1)) var(--gutter) calc(var(--space-2) + 88px);
+  display: grid;
+  justify-items: start;
+  align-content: end;
+  gap: 10px;
+  padding: var(--space-2);
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-on-wash);
+}
+.hero-empty .icon { width: 28px; height: 28px; stroke-width: 1.1; }
+
+.hero-inner {
+  position: relative;
+  align-self: center;
+  padding-block: calc(var(--unit) + var(--space-3)) var(--space-3);
+  text-align: center;
+}
+
+/*
+  THE ARCH, drawn behind the name.
+
+  It is the logo's outline at the size of a doorway: the name and the strap
+  sit inside it, the way the wordmark sits inside the arch in the artwork. It
+  is drawn with preserveAspectRatio="none" on purpose — it is a frame around a
+  block of text whose height changes with the text, so it has to stretch to
+  whatever that block turns out to be rather than keep a fixed shape and miss
+  it.
+
+  Behind the text and never in front of it: -1 in a stacking context the
+  .hero-inner creates, so it cannot escape and land over the header.
+*/
+.hero-arch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(880px, 92vw);
+  height: min(660px, 76vh);
+  z-index: -1;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.25;
+  opacity: 0.55;
+}
+.hero[data-has-media='true'] .hero-arch { stroke: var(--gold-soft); opacity: 0.5; }
+
+/* Over film, everything in the hero is pale. With no film it stays ink,
+   because pale on the parchment page would be invisible. */
+.hero[data-has-media='true'] .hero-inner,
+.hero[data-has-media='true'] .hero-cue { color: var(--page); }
+.hero[data-has-media='true'] .hero-label { color: var(--gold-soft); }
+
+.hero-title {
+  margin-top: var(--space-1);
+  /*
+    The name is three long words. It is allowed to be two lines and no more:
+    at the display size, three lines is taller than the arch it sits inside
+    and the whole composition falls apart.
+  */
+  font-size: clamp(2.6rem, 8.4vw, 8rem);
+  max-width: 14ch;
+  margin-inline: auto;
+}
+
+.hero-strap {
+  max-width: 44ch;
+  margin: var(--space-2) auto 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  line-height: var(--line-loose);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+/* The second, quieter button. On film it is an outline in the page colour;
+   with no film behind it, the ordinary navy outline is already right. */
+.hero[data-has-media='true'] .hero-btn-ghost {
+  border-color: rgba(247, 244, 236, 0.5);
+  color: var(--page);
+}
+.hero[data-has-media='true'] .hero-btn-ghost:hover {
+  background: rgba(247, 244, 236, 0.12);
+  border-color: var(--page);
+}
+
+/* ---- Today's times, across the foot of the hero ------------------------ */
+
+.hero-prayer {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 14px max(var(--gutter), env(safe-area-inset-left))
+           calc(14px + env(safe-area-inset-bottom))
+           max(var(--gutter), env(safe-area-inset-right));
+
+  /*
+    Navy at 88% with a blur behind it. The blur is decoration and the 88% is
+    not: the strip has to stay readable over whatever frame of film happens to
+    be behind it, and a browser with no backdrop-filter still gets a solid
+    enough panel to read.
+  */
+  background: rgba(6, 29, 74, 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--gold-line);
+  color: var(--on-brand);
+}
+
+.hero-prayer-label {
+  color: var(--gold-soft);
+  white-space: nowrap;
+}
+
+/*
+  Six equal cells with a gold hairline between them.
+
+  The dividers are BORDERS on the cells, not gaps showing a background
+  through. A background behind a transparent cell would sit on top of the
+  strip's own semi-transparent navy and wash every cell a shade lighter than
+  the panel around it — which looks like a mistake over a photograph, because
+  the amount it lightens by depends on the frame of video underneath.
+*/
+.hero-prayer-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.hero-prayer-cell {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  transition: background 0.3s var(--ease-ref), box-shadow 0.3s var(--ease-ref);
+}
+.hero-prayer-cell + .hero-prayer-cell {
+  border-left: 1px solid rgba(226, 193, 133, 0.24);
+}
+
+.hero-prayer-name {
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: rgba(247, 244, 236, 0.72);
+}
+
+.hero-prayer-time {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: var(--weight-strong);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/*
+  THE NEXT PRAYER. Set by mountPrayerTimes(), which is entirely optional — with
+  the script broken this rule simply never matches and the strip is a plain,
+  correct timetable.
+
+  The highlight is a gold underline and a lift in the text colour, not a
+  filled box: a solid gold cell in a row of six is a button, and this is not
+  something you can press.
+*/
+.hero-prayer-cell[data-prayer-next='true'] {
+  background: rgba(226, 193, 133, 0.14);
+  box-shadow: inset 0 -2px 0 var(--gold-soft);
+}
+.hero-prayer-cell[data-prayer-next='true'] .hero-prayer-name { color: var(--gold-soft); }
+
+.hero-prayer-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--micro);
+  font-weight: var(--weight-medium);
+  color: var(--gold-soft);
+  white-space: nowrap;
+  transition: color 0.3s var(--ease-ref);
+}
+.hero-prayer-all .icon { width: 16px; height: 16px; transition: transform 0.3s var(--ease-ref); }
+.hero-prayer-all:hover { color: var(--on-brand); }
+.hero-prayer-all:hover .icon { transform: translateX(4px); }
+
+.hero-prayer--empty {
+  grid-template-columns: 1fr auto;
+  color: var(--on-brand);
+}
+.hero-prayer--empty .tiny { color: rgba(247, 244, 236, 0.75); }
+
+/*
+  ON A PHONE the strip becomes one scrolling row.
+
+  Six cells across 360px is 60px each, which is not enough for "Maghrib" and
+  a time under it. Scrolling sideways is the honest answer: every prayer is
+  still there, the first three are visible, and the rest are one thumb-flick
+  away. The label and the link move above and below it.
+*/
+@media (max-width: 900px) {
+  .hero-prayer {
+    grid-template-columns: 1fr auto;
+    gap: 10px var(--space-1);
+    padding-inline: 0;
+  }
+  .hero-prayer-label { padding-left: var(--gutter); }
+
+  /*
+    Placed explicitly. Auto-placement puts it after the row of cells — which
+    is row THREE, at the left-hand edge, under a timetable it is supposed to
+    sit opposite. It belongs on the first line, at the other end from "Today".
+  */
+  .hero-prayer-all {
+    grid-row: 1;
+    grid-column: 2;
+    justify-self: end;
+    padding-right: var(--gutter);
+  }
+
+  .hero-prayer-row {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    grid-auto-columns: minmax(84px, 1fr);
+    overflow-x: auto;
+    /* The row is scrolled, so the scrollbar must not be a visible line. */
+    scrollbar-width: none;
+  }
+  .hero-prayer-row::-webkit-scrollbar { display: none; }
+}
+
+/* The scroll cue, bottom right. The line underneath slides down and away on a
+   loop — the one piece of idle motion on the page. It sits above the prayer
+   strip, so it is pushed up clear of it. */
+.hero-cue {
+  position: absolute;
+  right: var(--gutter);
+  bottom: calc(var(--space-3) + 56px);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  z-index: 2;
+  /* The tracking leaves a gap after the last letter; pulling it back is what
+     makes the word look centred over the line under it. */
+  padding-right: 0.16em;
+}
+
+.hero-cue-line {
+  width: 1px;
+  height: 48px;
+  background: currentColor;
+  transform-origin: top;
+  animation: cue-drop 2.4s var(--ease-ref) infinite;
+}
+
+@keyframes cue-drop {
+  0%   { transform: scaleY(0); opacity: 0; }
+  35%  { transform: scaleY(1); opacity: 1; }
+  70%  { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0) translateY(48px); opacity: 0; }
+}
+
+/* On a phone there is no room for the cue between the strip and the buttons,
+   and nobody needs telling to scroll on a touch screen. */
+@media (max-width: 900px) {
+  .hero-cue { display: none; }
+}
+
+.hero-edit {
+  position: absolute;
+  left: var(--gutter);
+  top: calc(var(--unit) + var(--space-1));
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+
+/* ---- 1b. Welcome --------------------------------------------------------
+
+   The paragraph and the picture, side by side. The picture is cut to the
+   arch — the same shape as the service tiles and the outline in the hero.
+   ------------------------------------------------------------------------ */
+
+.welcome {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.welcome-lede {
+  margin-top: var(--space-2);
+  /* The opening paragraph is set a step up from body copy: it is the first
+     thing anybody reads on the page after the hero. */
+  font-size: clamp(1.05rem, 1.3vw, 1.2rem);
+}
+
+.welcome-body > .prose + .prose { margin-top: var(--space-2); }
+.welcome-actions { margin-top: var(--space-3); }
+
+.welcome-arch {
+  /* The arch is on the WRAPPER, never on the picture: a radius on the <img>
+     leaves the frame behind it square and the join shows. */
+  background: var(--sand);
+}
+.welcome-arch .media { border-radius: inherit; }
+
+@media (max-width: 900px) {
+  .welcome { grid-template-columns: 1fr; gap: var(--space-3); }
+  /* Picture first on a phone — it is the front of the building, and it says
+     where you are faster than the paragraph does. */
+  .welcome-media { order: -1; }
+  .welcome-arch { max-width: 420px; }
+}
+
+
+/* ---- 1c. Prayer times ---------------------------------------------------
+
+   The table, and Jumu'ah beside it. Used on the homepage, on /prayer-times
+   where it is given the whole width, and again at the foot of /contact.
+   ------------------------------------------------------------------------ */
+
+.prayer-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.prayer-card {
+  padding: var(--space-2);
+  background: var(--sand);
+  border-top: 2px solid var(--gold);
+}
+
+.prayer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.prayer-table thead th {
+  padding-bottom: 10px;
+  text-align: left;
+  font-family: var(--font);
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-60);
+  border-bottom: 1px solid var(--gold-line);
+}
+.prayer-table thead th:not(:first-child) { text-align: right; }
+
+.prayer-table tbody tr { border-bottom: 1px solid var(--hairline); }
+.prayer-table tbody tr:last-child { border-bottom: 0; }
+
+.prayer-table th,
+.prayer-table td { padding: 14px 0; }
+
+.prayer-name {
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  font-weight: var(--weight-display);
+  letter-spacing: 0;
+}
+
+.prayer-begins,
+.prayer-jamaah {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  white-space: nowrap;
+}
+
+/* The jama'ah is the number people are looking for, so it is the darker of
+   the two columns and the begins time is held back. */
+.prayer-begins { color: var(--ink-60); }
+.prayer-jamaah { font-weight: var(--weight-strong); }
+
+/* Sunrise, which has no congregation. */
+.prayer-none { color: var(--ink-60); font-weight: var(--weight-display); }
+
+/* The next prayer — same idea as the strip, in the palette of the page. */
+.prayer-table tbody tr[data-prayer-next='true'] {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--gold);
+}
+.prayer-table tbody tr[data-prayer-next='true'] th,
+.prayer-table tbody tr[data-prayer-next='true'] td { padding-inline: 12px; }
+.prayer-table tbody tr[data-prayer-next='true'] .prayer-name { color: var(--accent-on-wash); }
+
+.prayer-edit { margin-top: var(--space-2); }
+
+/* ---- Jumu'ah ---- */
+
+.jumuah {
+  padding: var(--space-2);
+  background: var(--brand);
+  color: var(--on-brand);
+  border-top: 2px solid var(--gold-soft);
+}
+
+.jumuah-label { color: var(--gold-soft); }
+.jumuah-title { margin-top: 6px; }
+
+.jumuah-list {
+  margin-top: var(--space-2);
+  border-top: 1px solid rgba(226, 193, 133, 0.28);
+}
+
+.jumuah-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(226, 193, 133, 0.18);
+}
+.jumuah-row dt { font-size: var(--small); color: rgba(247, 244, 236, 0.78); }
+.jumuah-row dd {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: var(--weight-strong);
+  white-space: nowrap;
+}
+
+.jumuah-note { margin-top: var(--space-2); color: rgba(247, 244, 236, 0.7); }
+
+/* ---- the prayer times page ---- */
+
+.prayer-section--page .prayer-card--large { padding: var(--space-3); }
+
+.prayer-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+.prayer-note p { margin-top: 10px; color: var(--ink-70); max-width: 46ch; }
+
+@media (max-width: 900px) {
+  .prayer-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ---- 1d. Services on the homepage ---------------------------------------
+
+   A grid of arches. Sized to how many there are, exactly like the event
+   strips: three across at three or more, two at two, and at one the tile
+   turns on its side and takes the width.
+   ------------------------------------------------------------------------ */
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
+  gap: var(--space-3) var(--space-2);
+}
+
+.service-tile-inner { display: block; }
+
+.service-tile-media {
+  background: var(--sand);
+  transition: transform 0.6s var(--ease-ref);
+}
+.service-tile-media .media { border-radius: inherit; }
+
+.service-tile-inner:hover .service-tile-media { transform: translateY(-6px); }
+
+.service-tile-body { margin-top: var(--space-1); }
+
+.service-tile-type { color: var(--accent); }
+
+.service-tile-title {
+  margin-top: 6px;
+  font-size: var(--display-4);
+  transition: color 0.3s var(--ease-ref);
+}
+.service-tile-inner:hover .service-tile-title { color: var(--accent); }
+
+.service-tile-line {
+  margin-top: 8px;
+  font-size: var(--small);
+  color: var(--ink-70);
+  line-height: var(--line-loose);
+}
+
+/* One tile: on its side, picture beside the words, the full width. */
+.service-grid[data-count='1'] .service-tile-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+.service-grid[data-count='1'] .service-tile-body { margin-top: 0; }
+
+@media (max-width: 900px) {
+  .service-grid { grid-template-columns: repeat(2, 1fr); }
+  .service-grid[data-count='1'] .service-tile-inner { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .service-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+  .service-grid .service-tile-media { max-width: 340px; }
+}
+
+
+/* ---- 2. Featured event -------------------------------------------------- */
+
+.featured-inner {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.featured-media .media { width: 100%; }
+
+.featured-inner:hover .featured-title { color: var(--accent); }
+.featured-title { transition: color 0.3s var(--ease-ref); }
+
+.featured-date {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-bottom: var(--space-1);
+}
+
+.featured-summary { margin-block: var(--space-2); }
+
+@media (max-width: 860px) {
+  .featured-inner { grid-template-columns: 1fr; gap: var(--space-2); }
+}
+
+
+/* ---- 3. Upcoming strip --------------------------------------------------
+
+   Cards in a row. A CSS grid with a 64px gap — no carousel, nothing that
+   slides sideways on its own.
+
+   IT IS BUILT FOR THE NUMBER OF CARDS THAT EXIST, not for a full house.
+   app.js counts them and sets --cols and data-count, and the grid uses exactly
+   that many columns, so the cards grow to fill the row rather than leaving a
+   hole where a fourth would be. Nothing is ever rendered into an empty cell,
+   at any width:
+
+     4 cards   4 columns; 2 x 2 on a tablet; stacked on a phone
+     3 cards   3 columns, and stays 3 on a tablet — two columns would leave
+               the third card alone with a gap beside it
+     2 cards   2 columns
+     1 card    the card turns on its side and takes the full width
+
+   minmax(0, 1fr), not 1fr, throughout. A bare `1fr` is really
+   `minmax(auto, 1fr)`, and `auto` means "at least as wide as my contents
+   refuse to get any narrower". One long unbreakable word in a headline is then
+   enough to push its column wider than the rest, and four cards that should be
+   identical come out at four different widths. The explicit zero minimum lets
+   them all shrink equally.
+   ------------------------------------------------------------------------ */
+
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.event-card-body { display: block; }
+
+/* The last card on its own: picture on the left, words on the right, the full
+   width of the page. A single upright card stretched across a screen is the
+   thing this avoids. */
+.event-grid[data-count='1'] .event-card {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+}
+.event-grid[data-count='1'] .event-card-media { margin-bottom: 0; }
+
+@media (max-width: 1100px) {
+  /* Only the four-column case needs folding; three at this width are still
+     comfortable, and folding them would put a hole in the second row. */
+  .event-grid[data-count='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  /*
+    [data-count] is on there for a reason. The tablet rule above is
+    `.event-grid[data-count='4']`, which is MORE SPECIFIC than a bare
+    `.event-grid` — so a plain `.event-grid` here would lose to it and a phone
+    would be left showing four cards in two 139px columns. Matching its
+    specificity, and coming later in the file, is what makes this one win.
+  */
+  .event-grid[data-count] { grid-template-columns: minmax(0, 1fr); }
+  .event-grid[data-count='1'] .event-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+
+  /*
+    One column, so one picture shape.
+
+    On a wide screen the ratio changes with the number of cards: two cards are
+    each half the page, so their pictures are wide (16:9); four are a quarter
+    each, so theirs are tall (17:19). That is deliberate. Down here every card
+    is the full width of the phone whatever the count, so keeping the two
+    shapes would mean the Upcoming pictures and the Been-and-gone ones below
+    them were different heights for no reason a reader could see. The spec's
+    17:19 wins, and every card on the page matches.
+
+    The !important is doing real work: the count-based ratio is written onto
+    the grid by JavaScript as an inline style, and an inline style beats an
+    ordinary rule in this file. This is the one place that has to override it.
+  */
+  .event-grid[data-count] { --card-ratio: 17 / 19 !important; }
+}
+
+.event-card-media { margin-bottom: var(--space-1); }
+.event-card-media img,
+.event-card-media video { transition: transform 0.6s var(--ease-ref); }
+.event-card:hover .event-card-media img,
+.event-card:hover .event-card-media video { transform: scale(1.03); }
+
+.event-card-label { margin-bottom: 6px; }
+
+.event-card-date {
+  font-size: var(--micro);
+  color: var(--ink-60);
+  margin-bottom: 6px;
+}
+
+.event-card-title {
+  font-size: var(--display-4);
+  transition: color 0.3s var(--ease-ref);
+}
+.event-card:hover .event-card-title { color: var(--accent); }
+
+
+/* ---- 4. Recent clips ----------------------------------------------------
+
+   Three short films across, each opening full size when you click it. A grid
+   with the spec's 64px gap — NOT a carousel; the reference site hasn't got one
+   and neither has this.
+
+   Nothing plays by itself. Each tile is a still with a play mark over it, and
+   the film only loads when somebody asks for it.
+
+   Sparse on purpose, the same idea as the event grid:
+
+     3 or more   upright 17:19 tiles, three across
+     2           landscape 16:9, side by side
+     1           one tile at 33:20 across the full width, which is the same
+                 shape as the full-width films elsewhere on the site
+
+   The ratio is set on the tile by app.js; the columns are set here from the
+   --cols it writes alongside.
+   ------------------------------------------------------------------------ */
+
+.clip-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 700px) {
+  .clip-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* A button that has to look like nothing at all. */
+.clip {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.clip-media { display: block; }
+
+/* The play mark, centred over the still. */
+.clip-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #FFFFFF;
+}
+.clip-play .icon {
+  width: 60px;
+  height: 60px;
+  padding: 16px;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.45);
+  /*
+    The one filled shape in an otherwise monoline icon set, on purpose. A play
+    mark is read at a glance or not at all, and an outlined triangle at this
+    size over a photograph is not read at a glance.
+  */
+  fill: currentColor;
+  stroke: none;
+  transition: transform var(--dur-fast) var(--ease-ref),
+              background var(--dur-fast) var(--ease-ref);
+}
+.clip:hover .clip-play .icon {
+  transform: scale(1.08);
+  background: var(--brand);
+}
+
+.clip-title {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--display-4);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  line-height: var(--line-head);
+  transition: color var(--dur-fast) var(--ease-ref);
+}
+.clip:hover .clip-title { color: var(--accent); }
+
+/* A clip record with no video URL in it yet. It is left on the page rather
+   than hidden, because a gap you can see is a gap you will fill. */
+.clip-missing {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: var(--space-1);
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+  text-align: center;
+}
+.clip-missing .icon { width: 28px; height: 28px; stroke-width: 1.2; }
+
+
+/* ---- 5. Values -------------------------------------------------------
+
+   TWO COMPLETELY DIFFERENT LAYOUTS, chosen by data-mode, which mountValues()
+   sets in app.js.
+
+     data-mode="pinned"   desktop. The stage sticks to the screen and the six
+                          words crossfade through it as you scroll.
+     data-mode="stacked"  phones, and anyone who has asked for reduced motion.
+                          Six ordinary panels, one after another.
+
+   The crossfade is this CSS transition, not a GSAP tween — that keeps it on
+   exactly the same 0.6s signature curve as everything else on the site.
+   ------------------------------------------------------------------------ */
+
+.values { padding-bottom: 0; }
+.values-head { margin-bottom: var(--space-3); }
+
+.values-stage { position: relative; }
+
+.pillar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.pillar-media { position: absolute; inset: 0; }
+.pillar-media-inner { width: 100%; height: 100%; border: 0; }
+
+/* With no media set, the empty frame shouldn't fill a whole screen with dashes. */
+.pillar .media--empty {
+  border: 0;
+  background: transparent;
+  color: rgba(247, 244, 236, 0.55);
+  align-content: end;
+  justify-items: start;
+  padding: var(--space-3);
+}
+
+.pillar-scrim {
+  position: absolute;
+  inset: 0;
+  /* Mixed from the brand navy, like the hero's, so a photograph behind a word
+     stays in the same family as the rest of the page instead of going grey. */
+  background: linear-gradient(to top, rgba(6, 29, 74, 0.80), rgba(6, 29, 74, 0.30));
+}
+.pillar:has(.media--empty) .pillar-scrim { display: none; }
+
+.pillar-body { position: relative; padding-block: var(--space-4); }
+.pillar-index { color: var(--on-brand); opacity: 0.7; }
+.pillar-word { margin-top: var(--space-1); }
+
+.pillar-line {
+  max-width: 30ch;
+  margin-top: var(--space-2);
+  font-size: var(--display-4);
+  line-height: var(--line-body);
+}
+
+/* --- pinned (desktop) --- */
+
+/* The track is what the page scrolls through; ScrollTrigger adds the extra
+   height itself when it pins the stage. */
+.values[data-mode='pinned'] .values-stage {
+  /* Pinned mode is desktop only (see the matchMedia in mountValues), where
+     vh and dvh are the same number — but kept consistent with the rest. */
+  height: 100%;
+  height: 100dvh;
+}
+
+.values[data-mode='pinned'] .pillar {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  /* The signature curve, at the default duration. Visibility is held until the
+     fade finishes, the same pattern as the menu and the preloader. */
+  transition:
+    opacity    0.6s var(--ease-ref),
+    visibility 0s linear 0.6s;
+}
+
+/* The word whose turn it is. */
+.values[data-mode='pinned'] .values-stage[data-active='0'] .pillar[data-index='0'],
+.values[data-mode='pinned'] .values-stage[data-active='1'] .pillar[data-index='1'],
+.values[data-mode='pinned'] .values-stage[data-active='2'] .pillar[data-index='2'],
+.values[data-mode='pinned'] .values-stage[data-active='3'] .pillar[data-index='3'],
+.values[data-mode='pinned'] .values-stage[data-active='4'] .pillar[data-index='4'],
+.values[data-mode='pinned'] .values-stage[data-active='5'] .pillar[data-index='5'] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity    0.6s var(--ease-ref),
+    visibility 0s linear 0s;
+}
+
+/* Which word you are on. */
+.values-progress {
+  position: absolute;
+  left: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: grid;
+  gap: 10px;
+}
+.values-progress span {
+  width: 2px;
+  height: 22px;
+  background: var(--on-brand);
+  opacity: 0.3;
+  transition: opacity 0.6s var(--ease-ref);
+}
+.values-progress span[data-on='true'] { opacity: 1; }
+
+.values[data-mode='stacked'] .values-progress { display: none; }
+
+/* --- stacked (phones, and reduced motion) --- */
+
+.values[data-mode='stacked'] .values-stage {
+  display: grid;
+  gap: 0;
+}
+.values[data-mode='stacked'] .pillar {
+  position: relative;
+  min-height: 70vh;
+}
+
+/* Before app.js has decided, show only the first — so the page never flashes
+   all six words stacked on top of one another. */
+.values:not([data-mode]) .pillar { position: absolute; inset: 0; opacity: 0; }
+.values:not([data-mode]) .pillar[data-index='0'] { opacity: 1; }
+.values:not([data-mode]) .values-stage { position: relative; height: 100dvh; }
+
+
+/* ---- 6. Full-width film -------------------------------------------------
+   The break between the clips and the donate band uses the shared
+   .film-section component above — see "Full-width film".
+   ------------------------------------------------------------------------ */
+
+
+/* ---- 7. Services teaser -------------------------------------------------
+
+   The tiles themselves are in part 1d, beside the rest of the homepage. What
+   is left here is the heading above them: the label and the title on the
+   left, "Everything we run" on the right, which is one .section-head with a
+   wrapper round the two left-hand lines.
+   ------------------------------------------------------------------------ */
+
+.services-teaser .section-head .display-3 { margin-top: 6px; }
+
+
+/* ---- 8. Donate band -----------------------------------------------------
+
+   The last thing on every page, and the one large area of colour in the body
+   of one. It is in --brand: --gold is the decoration colour and a whole band
+   of it would shout, and --accent is a text colour that at this size reads as
+   mud.
+
+   The arch is drawn across it, the same outline as the hero, so the top and
+   the bottom of the page answer each other.
+   ------------------------------------------------------------------------ */
+
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  background: var(--brand);
+  color: var(--on-brand);
+  padding-block: var(--space-5);
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.cta-arch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 88vw);
+  height: min(420px, 82%);
+  fill: none;
+  stroke: var(--gold-soft);
+  stroke-width: 1.25;
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.cta-inner {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+/*
+  NO OPACITY ON THESE.
+
+  All three used to be set at 0.75 to make the label recede. On the deep brand
+  band that measured 4.87:1 and passed; on the lighter accent band it measured
+  3.40:1 and did not. Rather than carry two different opacities for two labels
+  that are meant to look identical, none of them is faded: the label already
+  recedes by being 12px, uppercase and letter-spaced, which costs no contrast
+  at all.
+*/
+.cta-label { color: var(--gold-soft); }
+.cta-line { max-width: 46ch; }
+.cta-inner .rule { margin-inline: auto; }
+
+/*
+  .btn--on-band is declared once, with the other buttons in part 6 — a filled
+  pale gold with navy lettering on it, 7.7:1. It is not redeclared here: two
+  definitions of one button in one stylesheet is how they end up different.
+*/
+
+/* ====================================================== 8. Services ======= */
+
+/*
+  THE HOVER-IMAGE TABLE — one row per service, built to the measurements in
+  the spec:
+
+    row height   59.5px    --row-height
+    name         17px      --row-title
+    picture      17:19     --row-figure-ratio, at --row-figure-width (18%)
+
+  EVERYTHING HANGS OFF TWO CLASSES. app.js puts `is-active is-hover` on a row
+  on mouseenter and takes them off on mouseleave; the black band, the white
+  text and the picture are all CSS transitions keyed to that. No JavaScript
+  animates any of them.
+
+  That is also what makes moving between rows crossfade by itself: the row you
+  are leaving begins its 0.4s fade out at the same instant the row you are
+  entering begins its 0.4s fade in. There is no code for it at all.
+
+  The one thing JS does animate is the picture's horizontal position, which it
+  writes as an inline `left` — see mountProgrammeRows().
+*/
+
+.page-head { padding-block: calc(var(--unit) + var(--space-4)) var(--space-4); }
+.page-head .display-2 { margin-top: var(--space-1); }
+.page-head .prose { margin-top: var(--space-2); }
+
+/* Two columns, and the same two for the header and every row. */
+.table-head,
+.row-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.table-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gold);
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+.table-head span:last-child { text-align: right; }
+
+.rows { list-style: none; }
+
+.row {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+}
+
+/*
+  THE FULL-BLEED BAND.
+
+  The table sits inside .shell, which is centred and has a maximum width — but
+  the lit row has to run to both edges of the screen. So the black is a layer
+  of its own, pulled out to a full viewport width from the row's centre line.
+  `bottom: -1px` takes it over the hairline underneath, so a lit row is a solid
+  band rather than a band with a line through it.
+
+  html has overflow-x: clip (see the reset), which is what stops 100vw from
+  ever producing a sideways scrollbar.
+*/
+.row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  /* NAVY, not the near-black. The band is the biggest thing that happens on
+     this page and it should be the same colour as every other large fill on
+     the site. */
+  background: var(--brand);
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.4s var(--ease-ref);
+}
+.row.is-active::before { opacity: 1; }
+
+.row-inner {
+  position: relative;
+  z-index: 1;                      /* above the band */
+  align-items: center;
+  min-height: var(--row-height);   /* 59.5px, from the spec */
+}
+
+.row-name {
+  /* The display serif, one step up from body text. The row is a line in a
+     list of services and it should read like a name, not like a label. */
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--track-head);
+  transition: color 0.4s var(--ease-ref);
+}
+
+.row-type {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: right;
+  transition: color 0.4s var(--ease-ref);
+}
+
+/* Lit: the name goes to the page colour and the "When" column to the pale
+   gold — the accent gold is a colour for the parchment page and disappears
+   into a navy band. */
+.row.is-active .row-name { color: var(--on-brand); }
+.row.is-active .row-type { color: var(--gold-soft); }
+
+/*
+  The picture. `left` is written inline by app.js on every frame; everything
+  else about it is here.
+
+  z-index 2 puts it ABOVE the row's text, as the spec says — it is five times
+  the height of the row and passes right across the name as it tracks.
+*/
+.row-figure {
+  position: absolute;
+  top: 50%;
+  left: 0;                                  /* app.js overwrites this */
+  transform: translateY(-50%);
+  width: var(--row-figure-width);           /* 18% of the row */
+  aspect-ratio: var(--row-figure-ratio);    /* 17 / 19 */
+  /* The arch again — the picture that runs along the row is the same shape as
+     every other picture on the site. */
+  border-radius: var(--arch);
+  overflow: hidden;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;                     /* it must never eat a mouseenter */
+  transition: opacity 0.4s var(--ease-ref);
+}
+.row.is-active .row-figure { opacity: 1; }
+
+/*
+  The focus ring on a row.
+
+  `outline-offset: 3px` from the global rule would put the ring outside a row
+  that already runs the full width of the window, so it would be drawn off the
+  edge of the screen. Inset instead, and in the page colour, because by the
+  time a row has focus it is a navy band.
+*/
+.row:focus-visible {
+  outline: 2px solid var(--page);
+  outline-offset: -4px;
+}
+
+.row-figure img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.row-figure-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  border: 1px dashed var(--accent);
+  color: var(--accent-on-wash);
+}
+
+/* Desktop rows are the name and the type, and nothing else. */
+/*
+  Hidden to the eye on a desktop, but still read out.
+
+  display:none would take the sentence away from a screen reader as well, and
+  then the description would exist only for people on a phone. This is the
+  standard visually-hidden recipe: off-screen, zero-sized, still in the
+  accessibility tree.
+*/
+.row-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip-path: inset(50%);
+}
+
+.rows-edit { margin-top: var(--space-2); }
+
+/* ---- The table on a phone ------------------------------------------------
+
+   Below 768px the hover is gone completely — app.js attaches no listeners and
+   runs no animation loop at all — and each row becomes a card with its picture
+   already showing. This is where the description finally has room to be read.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+  .table-head { display: none; }
+  .row::before { display: none; }
+
+  .row {
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .row-figure {
+    position: static;
+    transform: none;
+    width: 100%;
+    /* Landscape here rather than 17:19 upright: five portrait pictures at the
+       full width of a phone is a very long page for very little gained. */
+    aspect-ratio: 16 / 9;
+    opacity: 1;
+    margin-bottom: var(--space-1);
+  }
+
+  .row-inner {
+    display: block;
+    min-height: 0;
+  }
+
+  .row-name {
+    display: block;
+    font-size: var(--display-4);
+    line-height: var(--line-head);
+  }
+
+  .row-type {
+    display: block;
+    text-align: left;
+    margin-top: 8px;
+  }
+
+  .row-description {
+    /* Undo the visually-hidden recipe above: here it is the body of the card. */
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    white-space: normal;
+    clip-path: none;
+
+    display: block;
+    margin-top: 10px;
+    font-size: var(--body);
+    line-height: var(--line-body);
+    color: var(--ink-70);
+  }
+}
+
+
+/* ---- The weekly rhythm --------------------------------------------------
+
+   A plain list under the table. Day, time, and what happens — a line each,
+   editable as one block of text in edit mode.
+   ------------------------------------------------------------------------ */
+
+.rhythm-title { margin-block: var(--space-1) var(--space-2); }
+.rhythm-body { margin-bottom: var(--space-3); }
+
+.rhythm-list { border-top: 1px solid var(--gold); }
+
+.rhythm-row {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 200px) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-1);
+  border-bottom: 1px solid var(--hairline);
+}
+.rhythm-row dd { margin: 0; }   /* the browser's own indent, removed */
+
+.rhythm-day {
+  font-size: var(--row-title);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+}
+
+.rhythm-time {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.rhythm-detail {
+  font-size: var(--body);
+  line-height: var(--line-body);
+  color: var(--ink-70);
+}
+
+.rhythm-note { margin-top: var(--space-2); max-width: 60ch; }
+
+@media (max-width: 700px) {
+  .rhythm-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+
+/* ======================================================== 9. Events ======= */
+
+/*
+  The listing and the page for one event.
+
+  Both grids here are the SAME .event-grid as the homepage strip, sized by the
+  same code — see eventGridSizing() in app.js. The difference is only how many
+  columns each is allowed: four on the homepage, three here. The picture's
+  shape comes from --card-ratio on the grid rather than from the card, which is
+  what lets the filter change it without anything being re-rendered.
+*/
+
+/* The live number beside the heading, lifted like a footnote. */
+.title-count {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  color: var(--accent);
+  vertical-align: super;
+  margin-left: 0.3em;
+}
+
+/* ---- The category filter ------------------------------------------------ */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: var(--micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  transition: background var(--dur-fast) var(--ease-ref),
+              border-color var(--dur-fast) var(--ease-ref),
+              color var(--dur-fast) var(--ease-ref);
+}
+.filter:hover { border-color: var(--brand); }
+
+/* The one you are on. aria-pressed is the state, so the look and what a screen
+   reader is told can never disagree. */
+.filter[aria-pressed='true'] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.filter-count { color: var(--ink-60); }
+.filter:hover .filter-count { color: inherit; }
+.filter[aria-pressed='true'] .filter-count { color: var(--on-brand); opacity: 0.66; }
+
+/* ---- Upcoming / been and gone ------------------------------------------- */
+
+.event-group + .event-group { margin-top: var(--space-4); }
+
+.group-heading {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--ink);
+}
+.group-count {
+  color: var(--accent);
+  vertical-align: super;
+  font-size: 10px;
+}
+
+.event-card-more { margin-top: var(--space-1); font-size: var(--micro); }
+
+/* ---- One event: the picture across the top ------------------------------ */
+
+.event-hero { position: relative; }
+.event-hero-media { width: 100%; }
+
+.event-head { padding-block: var(--space-3) var(--space-2); }
+
+.link-back { color: var(--ink-60); margin-bottom: var(--space-3); }
+.link-back:hover { color: var(--accent); }
+.link-back .icon { transition: transform var(--dur-fast) var(--ease-ref); }
+.link-back:hover .icon { transform: translateX(-4px); }
+
+.event-category { margin-bottom: var(--space-1); }
+.event-title { margin-bottom: var(--space-2); }
+.event-summary { margin-bottom: var(--space-3); font-size: var(--body); }
+
+/* Date, time and where, side by side under the headline. */
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--hairline);
+}
+.event-meta dt {
+  font-size: var(--label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-60);
+  margin-bottom: 6px;
+}
+.event-meta dd {
+  margin: 0;
+  font-size: var(--body);
+  line-height: var(--line-body);
+}
+
+/* ---- One event: the write-up, and the poster beside it ------------------ */
+
+.event-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: var(--space-3);
+  align-items: start;
+  padding-block: var(--space-3) var(--space-4);
+}
+
+/* No poster and no sign-up link: the writing simply has the page to itself. */
+.event-main[data-aside='false'] { grid-template-columns: minmax(0, 1fr); }
+
+.event-body { max-width: 62ch; }
+.event-body p {
+  font-size: var(--body);
+  line-height: var(--line-loose);
+}
+.event-body p + p { margin-top: var(--space-1); }
+
+/*
+  The poster stays with you as the writing scrolls past — it is the thing
+  somebody is most likely to want to screenshot.
+*/
+.event-aside {
+  position: sticky;
+  top: calc(var(--unit) + var(--space-1));
+  display: grid;
+  gap: var(--space-2);
+}
+
+.event-signup { margin: 0; }
+.event-signup .btn { width: 100%; justify-content: center; }
+
+/* ---- One event: what came before and after ------------------------------ */
+
+.event-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.event-step { display: grid; gap: 8px; }
+.event-step .label { display: inline-flex; align-items: center; gap: 8px; }
+.event-step .icon { transition: transform var(--dur-fast) var(--ease-ref); }
+
+/* The second one is the "next", so it reads from the right-hand edge. */
+.event-step[data-step='next'] { text-align: right; justify-items: end; }
+
+.event-step-title {
+  font-size: var(--display-4);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-head);
+  text-transform: uppercase;
+  transition: color var(--dur-fast) var(--ease-ref);
+}
+.event-step:hover .event-step-title { color: var(--accent); }
+.event-step[data-step='previous']:hover .icon { transform: translateX(-4px); }
+.event-step[data-step='next']:hover .icon { transform: translateX(4px); }
+
+@media (max-width: 860px) {
+  .event-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  /* Nothing to stick to once it is in the flow. */
+  .event-aside { position: static; }
+  .event-poster { max-width: 420px; }
+}
+
+@media (max-width: 600px) {
+  .event-nav { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .event-step[data-step='next'] { text-align: left; justify-items: start; }
+  .event-meta { gap: var(--space-2); }
+}
+
+
+/* ========================================================= 10. Donate ===== */
+
+/*
+  The donation page. Three things here are worth knowing before changing any
+  of it:
+
+  1. THE HERO BAND IS THE DEEP NAVY, not the gold. Gold is the decoration
+     colour on this site — hairlines, arches, 12px labels — and a whole screen
+     of it is both loud and, with words on top, unreadable. The page opens on
+     the same navy as the donate band it is reached from, with the same arch
+     drawn across it, so arriving here feels like the same room.
+
+  2. THE AMOUNT CARDS SIZE THEMSELVES, the same way the event grids do. The
+     number of cards with a link behind them is written onto the grid by
+     app.js; four amounts set up is four cards across, not five columns with a
+     gap at the end.
+
+  3. THE SMALL PRINT UNDER THE BUTTONS IS NOT EDITABLE, on purpose. See the
+     comment above it in app.js — it is a claim about a legal status.
+*/
+
+/* ---- The hero band ------------------------------------------------------ */
+
+.support-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--brand);
+  color: var(--on-brand);
+  /* Runs up under the fixed header — hence the extra --unit at the top. The
+     foot is one step tighter than the head: this is the largest area of
+     colour anywhere on the page, and padding it like a full section at both
+     ends turns a band into a wall. */
+  padding-block: calc(var(--unit) + var(--space-4)) var(--space-3);
+  text-align: center;
+}
+
+.support-hero-inner {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+.support-hero-label { color: var(--gold-soft); }   /* see .cta-label — no opacity */
+.support-hero-line { max-width: 50ch; }
+
+/* ---- The intention, and the hadith -------------------------------------- */
+
+.support-intention { padding-block: var(--space-4) var(--space-3); }
+.support-intention-note { max-width: 46ch; margin-top: var(--space-1); }
+
+.pull-quote {
+  margin-top: var(--space-3);
+  border-left: 2px solid var(--gold);
+  padding-left: var(--space-2);
+}
+
+/*
+  The hadith, at display size and in the display serif, set a little looser
+  than a heading. A heading is one or two words and can be packed tight; three
+  lines of quotation at 1.02 is a brick.
+*/
+.pull-quote-text {
+  font-family: var(--font-display);
+  font-size: var(--display-4);
+  font-weight: var(--weight-display);
+  line-height: 1.18;
+  letter-spacing: var(--track-head);
+
+  /*
+    The measure is in `em`, NOT in `ch`, and the difference is not academic.
+
+    `ch` is the width of a zero in the element's own font size — and the line
+    length wanted here is a property of THIS type at THIS size, not of the
+    17px body text on the figure around it. Setting it on the wrapper in `ch`
+    gave a 216px column and broke the hadith into ten lines of one word each.
+
+    15em of 48px type is about three lines, which is what a pull quote should
+    be, and because it is in `em` it stays three lines as the display scale
+    grows and shrinks with the window.
+  */
+  max-width: 15em;
+}
+
+.pull-quote-source {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--ink-60);
+}
+
+/* ---- The three money blocks --------------------------------------------- */
+
+.support-block { padding-block: var(--space-3); }
+.support-block .display-3,
+.support-block .display-4 { margin-block: var(--space-1) var(--space-2); }
+
+.support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+/* .btn--lg — the one-time button, and the one in the donate band — is
+   declared with the other buttons in part 6. It used to be declared a second
+   time here as well, which is how two sizes of the same button end up on one
+   site. */
+
+/* ---- The monthly ladder -------------------------------------------------- */
+
+.tier-grid {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+/* A column rather than a grid, so `margin-top: auto` on the button can push
+   it to the bottom — which is what keeps five buttons on one line with each
+   other when one card's amount wraps and another's doesn't. */
+.tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 180px;
+  border: 1px solid var(--hairline);
+  padding: var(--space-2) var(--space-1) var(--space-1);
+}
+.tier:hover { border-color: var(--gold); background: var(--accent-soft); }
+
+/*
+  WATCH OUT FOR THIS ONE — it is the sort of thing that looks like the reveal
+  is broken when it is really the hover that broke it.
+
+  `transition` is a shorthand: whichever rule wins REPLACES the whole list, it
+  does not add to it. A card is both a reveal target (which transitions its
+  opacity and its transform, with the stagger in the delay) and a hover target
+  (which transitions its border and its background). Declaring the hover pair
+  on a bare `.tier` would throw the reveal pair away, and the cards would snap
+  into place instead of fading up.
+
+  So both pairs are declared together, on a selector specific enough to beat
+  `[data-reveal='text']` in part 4. If you add a hover transition to anything
+  else that carries data-reveal, do the same thing.
+*/
+.tier[data-reveal] {
+  transition:
+    border-color var(--dur-fast) var(--ease-ref),
+    background   var(--dur-fast) var(--ease-ref),
+    opacity   var(--dur-base) var(--ease-ref) calc(var(--reveal-delay) + (var(--i, 0) * var(--reveal-delay))),
+    transform var(--dur-base) var(--ease-ref) calc(var(--reveal-delay) + (var(--i, 0) * var(--reveal-delay)));
+}
+
+/* An amount with no link yet. Only ever rendered in edit mode — a visitor is
+   shown a shorter ladder rather than a card that does nothing. */
+.tier[data-unset] {
+  border-style: dashed;
+  border-color: var(--accent);
+}
+.tier[data-unset]:hover { background: none; border-color: var(--accent); }
+
+.tier-amount {
+  font-family: var(--font-display);
+  font-size: var(--display-4);
+  font-weight: var(--weight-strong);
+  line-height: var(--line-head);
+  letter-spacing: var(--track-head);
+}
+
+.tier-period {
+  font-size: var(--micro);
+  color: var(--ink-60);
+  margin-bottom: var(--space-1);
+}
+
+/* Buttons in the ladder fill their card, so five of them read as one row of
+   equal choices rather than five loose words. */
+.tier-btn { width: 100%; margin-top: auto; }
+
+/* ---- LaunchGood ---------------------------------------------------------- */
+
+/* Set apart in a panel, because it is somebody else's platform rather than
+   another amount on the same ladder. */
+.support-panel {
+  border: 1px solid var(--hairline);
+  background: var(--accent-soft);
+  padding: var(--space-2);
+}
+.support-panel .prose { max-width: 52ch; }
+/* Blue label on the blue wash — see --accent-on-wash. */
+.support-panel .label { color: var(--accent-on-wash); }
+
+/* ---- The small print ----------------------------------------------------- */
+
+.support-legal {
+  padding-block: var(--space-2);
+}
+.support-legal .tiny {
+  max-width: 68ch;
+  color: var(--ink-70);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-1);
+}
+
+/* ---- Other ways to help --------------------------------------------------- */
+
+.ways-grid {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.way { border-top: 1px solid var(--gold); padding-top: var(--space-1); }
+.way-title { font-size: var(--heading); margin-bottom: 8px; }
+.way-body { color: var(--ink-70); }
+
+/* ---- The "no link set" warning, edit mode only ---------------------------- */
+
+.support-missing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--micro);
+  color: var(--accent);
+}
+.support-missing .icon { flex: none; }
+
+/* ---- Narrower screens ------------------------------------------------------ */
+
+@media (max-width: 1000px) {
+  /* Five amounts across stop being readable well before the phone breakpoint;
+     [data-count] matches the specificity of the phone rule below. */
+  .tier-grid[data-count] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ways-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .tier-grid[data-count] { grid-template-columns: minmax(0, 1fr); }
+  .ways-grid { grid-template-columns: minmax(0, 1fr); }
+
+  /*
+    One card per row, so there is nothing to line the buttons up WITH — and
+    the min-height that keeps five buttons level on a desktop just opens a
+    dead gap between "a month" and the button on a phone. Both go.
+  */
+  .tier { min-height: 0; }
+  .tier-btn { margin-top: var(--space-1); }
+}
+
+
+/* ======================================================= 11. Contact ====== */
+
+/*
+  The address, the phone number, the email and the WhatsApp link, in four
+  blocks, with today's prayer times underneath them.
+
+  It is the one page from the routing skeleton that has been built out, and
+  the reason is the address: a mosque's website is read by somebody standing
+  on the street looking for the door, or trying to work out who to ring about
+  a funeral at ten at night. See renderContact() in app.js.
+*/
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.contact-block {
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--gold);
+}
+
+.contact-block-label { color: var(--ink-60); }
+
+.contact-address {
+  margin-top: var(--space-1);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  line-height: 1.4;
+}
+.contact-address p + p { margin-top: 0; }
+
+/*
+  The phone number, the email and the WhatsApp link.
+
+  `overflow-wrap: anywhere` is doing real work here, not tidying: an email
+  address is one unbreakable word, and "salaam@taibaislamiccentre.org" set at
+  display size in a 240px column runs straight off the end of it. The size is
+  a step below the display scale for the same reason — this is a detail to be
+  read and copied, not a heading.
+*/
+.contact-line {
+  margin-top: var(--space-1);
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.contact-line .icon { width: 20px; height: 20px; flex: none; }
+.contact-line a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contact-action { margin-top: var(--space-1); }
+
+/* A detail that has not been filled in. Only ever rendered in edit mode — a
+   visitor is shown nothing at all rather than a gap. */
+.contact-gap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-1);
+  font-size: var(--micro);
+  color: var(--accent);
+}
+.contact-gap .icon { flex: none; }
+
+/* The timetable at the foot of the page is the compact two-column one — see
+   prayerTable(..., { compact: true }). */
+.contact-prayer .prayer-card { max-width: 560px; }

@@ -1,0 +1,13 @@
+# What search engines are allowed to look at.
+#
+# Everything, except the bits that are not pages: the API, and the design
+# system page that exists only while the site is being built.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /foundations
+
+# The list of every page, rebuilt each time it is asked for so that new events
+# appear in it by themselves. See api/sitemap.js.
+Sitemap: https://taibaislamiccentre.org/sitemap.xml
