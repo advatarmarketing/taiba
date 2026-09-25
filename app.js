@@ -182,7 +182,7 @@ const api = {
 const state = {
   copy: null,            // { "home.hero.title": "…" } — your text overrides
   settings: null,        // the contact email, social links and site-wide media
-  prayer: null,          // today's times, from Mawaqit — see api/prayer.js
+  prayer: null,          // today's times, from iqamah.co.uk — see api/prayer.js
   events: null,          // the events list — the menu counts these
   services: null,        // the rows in the table on Services
   clips: null,           // short films for the homepage grid
@@ -755,11 +755,11 @@ const NO_JAMAAH = new Set(['sunrise', 'shuruq', 'shurooq', 'sunset']);
  * Today's timetable, padded out to the six rows the table always shows.
  *
  * WHERE THE ROWS COME FROM. `state.prayer` is today's times read from the
- * centre's own Mawaqit page — the same timetable as the screen in the prayer
- * hall — and it is preferred whenever it is there. The hand-typed rows in
- * settings are the fallback for the one case where Mawaqit has never been
- * reachable at all. api/prayer.js decides between them; this function only
- * has to notice which arrived.
+ * centre's listing on iqamah.co.uk — the adhan times as published, with the
+ * iqamah times worked out from the offsets in settings — and it is preferred
+ * whenever it is there. The hand-typed rows are the fallback for the one case
+ * where the listing has never been reachable at all. api/prayer.js decides
+ * between them; this function only has to notice which arrived.
  *
  * A mosque that has filled in only Fajr still gets a complete table with five
  * rows waiting in it, rather than one lonely row that looks like the page is
@@ -1338,17 +1338,19 @@ function prayerTable(settings, { compact = false } = {}) {
 /**
  * Where these times came from, said out loud.
  *
- * Visitors get one quiet line naming Mawaqit and linking to the centre's page
- * there. That is not decoration: it tells somebody who spots a wrong time
- * exactly where it is wrong, which is the mosque's own Mawaqit account and
- * not this website.
+ * Visitors get one quiet line naming iqamah.co.uk and linking to the centre's
+ * page there. That is not decoration: an ADHAN time that is wrong is wrong at
+ * the source and has to be fixed there, and this is the only thing on the
+ * page that says so.
  *
- * Edit mode gets the rest of the truth — when it was last read, and whether
- * what is on screen is a cached copy because Mawaqit could not be reached.
+ * An IQAMAH time that is wrong is a different job — that one is ours, in the
+ * offsets — which is why edit mode also prints the gaps the times were worked
+ * out with, alongside when the feed was last read and whether the copy on
+ * screen is a cached one.
  */
 function prayerCredit() {
   const feed = state.prayer;
-  if (feed?.source !== 'mawaqit') {
+  if (feed?.source !== 'iqamah') {
     /*
       Typed by hand. Nothing to credit, but whoever is logged in should know
       that the live feed is not what they are looking at — and WHY, because
@@ -1357,7 +1359,7 @@ function prayerCredit() {
     */
     return editOnly(`
       <p class="prayer-credit prayer-credit--warn">${icon('alert')}
-        <span>Showing the typed fallback times. ${esc(feed?.reason ?? 'Mawaqit is switched off, or has never been reachable.')}</span>
+        <span>Showing the typed fallback times. ${esc(feed?.reason ?? 'The live feed is switched off, or has never been reachable.')}</span>
       </p>`);
   }
 
@@ -1369,17 +1371,17 @@ function prayerCredit() {
   return `
     <p class="prayer-credit">
       <span data-copy="prayer.credit">Times from</span>
-      <a class="text-link" href="${safeUrl(feed.mosque?.url) || '#'}" target="_blank" rel="noopener noreferrer">Mawaqit</a>${
+      <a class="text-link" href="${safeUrl(feed.mosque?.url) || '#'}" target="_blank" rel="noopener noreferrer">iqamah.co.uk</a>${
         editOnly(`<span class="prayer-credit-meta">${
           feed.stale
-            ? `${icon('alert')} showing a cached copy — Mawaqit could not be reached`
+            ? `${icon('alert')} showing a cached copy — iqamah.co.uk could not be reached`
             : `read ${esc(read)}`
         }</span>`)
       }${
         /*
           The times are live, but there is nowhere to keep them. This is what
           a deployment with no database looks like: everything works, and
-          every cold start goes back out to Mawaqit for it. Worth saying
+          every cold start goes back out to the listing for it. Worth saying
           plainly, because the site gives no other outward sign of it.
         */
         feed.stored === false
@@ -1391,8 +1393,8 @@ function prayerCredit() {
 
 /** The Jumu'ah panel — the one prayer people travel for. */
 function jumuahPanel(settings) {
-  /* Friday comes from Mawaqit too, where it is one or two or three sittings
-     rather than a fixed shape — see jumuaRows() in lib/mawaqit.js. */
+  /* Friday comes from the listing too, where it is one or two or three
+     sittings rather than a fixed shape — see jumuaRows() in lib/iqamah.js. */
   const live = Array.isArray(state.prayer?.jumua) ? state.prayer.jumua : [];
   const rows = live.length
     ? live
@@ -1442,7 +1444,7 @@ function prayerSection(settings) {
         ${prayerTable(settings, { compact: false })}
         ${editOnly(`<div class="prayer-edit">
           <button type="button" class="edit-chip" data-edit="prayer">${icon('pencil')} Prayer times settings</button>
-          <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('clock')} Refresh from Mawaqit</button>
+          <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('clock')} Refresh the times</button>
         </div>`)}
       </div>
 
@@ -2236,7 +2238,7 @@ async function renderPrayerTimes() {
 
       ${editOnly(`<div style="margin-top:var(--space-2)">
         <button type="button" class="edit-chip" data-edit="prayer">${icon('clock')} Prayer times settings</button>
-        <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('arrowDown')} Refresh from Mawaqit</button>
+        <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('arrowDown')} Refresh the times</button>
         <button type="button" class="edit-chip" data-edit="jumuah">${icon('pencil')} Jumu&#39;ah fallback</button>
       </div>`)}
     </section>
@@ -5502,11 +5504,11 @@ function openSettingsEditor({ title, subtitle, fields }) {
 
           /*
             The prayer times are not IN settings — they are fetched from
-            Mawaqit and cached — but two of the settings decide which page is
-            read and whether it is read at all. So the cached times are thrown
-            away after any settings save and fetched again on the next render.
-            Without this, changing the Mawaqit page appears to do nothing
-            until a reload.
+            iqamah.co.uk and cached — but several settings decide which page
+            is read, whether it is read at all, and what the iqamah gaps are.
+            So the cached answer is thrown away after any settings save and
+            fetched again on the next render. Without this, changing an offset
+            or the page appears to do nothing until a reload.
           */
           invalidate('prayer');
           await load('prayer').catch(() => { state.prayer = null; });
@@ -5632,39 +5634,45 @@ const RHYTHM_FIELDS = [
 /*
   THE PRAYER TIMETABLE.
 
-  NOBODY TYPES THESE IN ANY MORE. The centre keeps its timetable in Mawaqit,
-  which is what drives the screen in the prayer hall, and the site reads that
-  same page — so the website and the wall cannot disagree, and a change made
-  once is made everywhere. See lib/mawaqit.js.
+  NOBODY TYPES THE ADHAN TIMES IN. The centre is listed at iqamah.co.uk, which
+  publishes the whole year as a CSV, and the site reads it — so the end of a
+  month is a non-event and there is nothing to do on the first of one.
 
-  What is left in this form is the two things a person still decides:
+  WHAT A PERSON STILL OWNS IS THE IQAMAH GAP. The published file carries
+  jamaat columns of its own and they are NOT used: they said Isha was at 21:00
+  when the centre prays it at 20:29. So the five offsets below are the real
+  ones, they are the thing that actually gets changed, and they are five plain
+  number boxes rather than anything cleverer because changing one at short
+  notice has to take ten seconds.
 
-    1. WHICH MOSQUE. Paste any Mawaqit address — the public page, or the admin
-       page you happen to be looking at when you think of it.
-    2. WHERE TO READ FROM. "manual" switches the fetch off and uses the typed
-       rows below, which is the escape hatch for a week when Mawaqit is wrong
-       and the door is right.
+  The offsets are applied when the page is DRAWN. Change one and it is right
+  on the next page load — nothing is refetched, and a year of cached adhan
+  times stays valid however often they are edited.
 
-  The typed rows stay, as the fallback for the one case where Mawaqit has
-  never once been reachable. They are one box rather than eighteen fields
-  because somebody filling them in is copying a printed sheet straight down,
-  and eighteen fields is eighteen clicks between them.
-
-  Times typed here are FREE TEXT — "5.42am", "05:42" and "5:42 AM" are all
-  accepted and all shown exactly as typed. Only the "which prayer is next"
-  highlight tries to read them, and it skips anything it cannot.
+  The typed rows at the bottom stay as the fallback for the one case where the
+  listing has never once been reachable.
 */
+const OFFSET_HINT = 'Minutes after the adhan. Change this whenever the centre changes the gap.';
+
 const PRAYER_FIELDS = [
   {
-    name: 'mawaqitSlug', label: 'Mawaqit page', type: 'text',
-    placeholder: 'https://mawaqit.net/en/…',
-    hint: 'The centre\u2019s page on mawaqit.net. Paste the whole address from either mawaqit.net or admin.mawaqit.net \u2014 only the last part of it is kept. Leave blank to switch Mawaqit off entirely.',
+    name: 'iqamahSlug', label: 'iqamah.co.uk page', type: 'text',
+    placeholder: 'https://iqamah.co.uk/taiba_welfare_foundation',
+    hint: 'Where the adhan times are read from. Paste the whole address \u2014 only the last part of it is kept. Leave blank to switch the live feed off entirely.',
   },
   {
     name: 'prayerSource', label: 'Read the times from', type: 'select',
-    options: ['mawaqit', 'manual'],
-    hint: '"mawaqit" is the live timetable and is what you want. "manual" ignores it and uses the rows below \u2014 only for when Mawaqit is wrong and you need the site right today.',
+    options: ['iqamah', 'manual'],
+    hint: '"iqamah" is the live timetable and is what you want. "manual" ignores it and uses the fallback rows below \u2014 only for when the feed is wrong and you need the site right today.',
   },
+
+  /* The five that actually get edited. */
+  { name: 'iqamahOffsets.fajr',    label: 'Fajr \u2014 minutes after adhan',    type: 'number', hint: OFFSET_HINT },
+  { name: 'iqamahOffsets.zuhr',    label: 'Zuhr \u2014 minutes after adhan',    type: 'number', hint: OFFSET_HINT },
+  { name: 'iqamahOffsets.asr',     label: 'Asr \u2014 minutes after adhan',     type: 'number', hint: OFFSET_HINT },
+  { name: 'iqamahOffsets.maghrib', label: 'Maghrib \u2014 minutes after adhan', type: 'number', hint: OFFSET_HINT },
+  { name: 'iqamahOffsets.isha',    label: 'Isha \u2014 minutes after adhan',    type: 'number', hint: OFFSET_HINT },
+
   {
     name: 'prayer', label: 'Fallback timetable', type: 'rows',
     columns: [
@@ -5675,8 +5683,8 @@ const PRAYER_FIELDS = [
   },
 ];
 
-/* Friday, and the same story: Mawaqit supplies it, one sitting or three, and
-   these rows are only reached if it never has. */
+/* Friday, and the same story: the listing supplies it, one sitting or three,
+   and these rows are only reached if it never has. */
 const JUMUAH_FIELDS = [
   {
     name: 'jumuah', label: "Jumu'ah \u2014 fallback", type: 'rows',
@@ -5941,14 +5949,17 @@ function mountEditHandlers() {
     */
     prayer: () => openSettingsEditor({
       title: 'Prayer timetable',
-      subtitle: 'The times come from the centre\u2019s own Mawaqit page \u2014 the same timetable as the screen in the prayer hall \u2014 so they are not typed in here. This is which page to read, and the fallback for if it is ever unreachable.',
+      subtitle: 'The adhan times are read from the centre\u2019s page on iqamah.co.uk and look after themselves. What you set here is the IQAMAH GAP after each one \u2014 the minutes between the adhan and the congregation.',
       fields: PRAYER_FIELDS,
     }),
 
     /*
       "Refresh now". The times are re-read every six hours on their own, so
-      this is only for the minute after somebody has changed something in
-      Mawaqit and wants to see it on the website before they walk away.
+      this is only for the minute after something has changed upstream and
+      somebody wants to see it on the website before they walk away.
+
+      It does NOT need pressing after changing an iqamah offset — those are
+      applied when the page is drawn, so they are already right.
     */
     'prayer-refresh': async () => {
       try {
@@ -5956,8 +5967,8 @@ function mountEditHandlers() {
         state.prayer = payload.prayer;
         await renderRoute(window.location.pathname, { restoreScroll: true });
         toast(payload.prayer?.stale
-          ? 'Mawaqit could not be reached \u2014 still showing the last copy.'
-          : 'Prayer times re-read from Mawaqit.', payload.prayer?.stale ? 'error' : 'ok');
+          ? 'iqamah.co.uk could not be reached \u2014 still showing the last copy.'
+          : 'Prayer times re-read from iqamah.co.uk.', payload.prayer?.stale ? 'error' : 'ok');
       } catch (error) {
         toast(error.message, 'error');
       }
@@ -6119,7 +6130,7 @@ async function boot() {
     load('events').catch(() => { state.events = []; }),
     load('services').catch(() => { state.services = []; }),
     /*
-      Today's prayer times, from the centre's Mawaqit page. Fetched here
+      Today's prayer times, from the centre's iqamah.co.uk listing. Fetched here
       rather than by the page that needs them, because the hero strip on the
       homepage shows them above the fold — waiting until that section renders
       would mean the most important thing on the site arrives last.

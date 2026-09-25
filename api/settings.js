@@ -16,7 +16,7 @@
  */
 
 import { get, set } from '../lib/kv.js';
-import { slugFrom } from '../lib/mawaqit.js';
+import { slugFrom, DEFAULT_OFFSETS, OFFSET_KEYS } from '../lib/iqamah.js';
 import { seedFor } from '../lib/seed.js';
 import {
   ok,
@@ -105,20 +105,38 @@ const MAX_JUMUAH_ROWS = 6;
 /*
   WHERE THE TIMES COME FROM.
 
-    mawaqitSlug   the mosque's page on mawaqit.net, which is where the centre
-                  already keeps its timetable and what drives the screen in
-                  the prayer hall. Paste any Mawaqit address — the public one,
-                  or the admin one you happen to be looking at — and
-                  slugFrom() reduces it to the slug.
+    iqamahSlug     the centre's page on iqamah.co.uk, which publishes the
+                   whole year as a CSV. Paste the address or the slug —
+                   slugFrom() reduces either to the slug.
 
-    prayerSource  "mawaqit" (the default) or "manual". Manual switches the
-                  fetch off entirely and uses the typed rows below, which is
-                  the escape hatch for a week when Mawaqit is wrong and the
-                  door is right.
+    prayerSource   "iqamah" (the default) or "manual". Manual switches the
+                   fetch off entirely and uses the typed rows below, which is
+                   the escape hatch for a week when the feed is wrong and the
+                   door is right.
+
+    iqamahOffsets  MINUTES AFTER THE ADHAN for each congregation. The listing
+                   carries jamaat columns of its own and they are not used —
+                   they do not match what happens in the building. These do,
+                   and they are the one number somebody at the centre owns.
 
   The typed rows are kept either way. They are what the site falls back to if
-  Mawaqit has never once been reachable — see api/prayer.js.
+  the listing has never once been reachable — see api/prayer.js.
 */
+
+/*
+  An offset is minutes, and nothing else. Anything unreadable falls back to
+  the default for that prayer rather than to zero — a blank box while somebody
+  retypes a number must never publish an iqamah at the same minute as the
+  adhan. 180 is a ceiling on typos, not a real limit anyone will meet.
+*/
+function cleanOffsets(input) {
+  const given = input && typeof input === 'object' ? input : {};
+  return Object.fromEntries(Object.values(OFFSET_KEYS).map((key) => {
+    const value = Number(given[key]);
+    const usable = given[key] !== '' && given[key] != null && Number.isFinite(value);
+    return [key, usable ? Math.min(180, Math.max(0, Math.round(value))) : DEFAULT_OFFSETS[key]];
+  }));
+}
 
 /*
   DONATION LINKS.
@@ -282,8 +300,9 @@ function sanitize(input) {
       Friday times beside it. Both are the FALLBACK once a Mawaqit slug is
       set; the live times come from there.
     */
-    mawaqitSlug: slugFrom(value.mawaqitSlug),
-    prayerSource: value.prayerSource === 'manual' ? 'manual' : 'mawaqit',
+    iqamahSlug: slugFrom(value.iqamahSlug),
+    prayerSource: value.prayerSource === 'manual' ? 'manual' : 'iqamah',
+    iqamahOffsets: cleanOffsets(value.iqamahOffsets),
     prayer: cleanPrayer(value.prayer),
     jumuah: cleanJumuah(value.jumuah),
 
@@ -333,6 +352,9 @@ export default withErrors(async (req, res) => {
        with it until somebody edits the database by hand. */
     prayer: incoming.prayer ?? current.prayer,
     jumuah: incoming.jumuah ?? current.jumuah,
+    /* An object, so a form that changes only the Isha gap must not blank the
+       other four. */
+    iqamahOffsets: { ...current.iqamahOffsets, ...(incoming.iqamahOffsets ?? {}) },
     rhythm: incoming.rhythm ?? current.rhythm,
     /* Two levels, like the films: a form that changes one monthly amount must
        not blank the other four. */

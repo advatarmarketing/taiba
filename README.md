@@ -7,10 +7,10 @@ This README is written for someone who is **not** a developer. It explains what
 each file is for, how to run the site on your own computer, and how the "edit
 the words on the site" feature works.
 
-**The prayer times look after themselves.** They are read from the centre's own
-Mawaqit page — the same timetable that drives the screen in the prayer hall —
-so there is nothing to type in here and nothing to do on the first of the
-month. If a time is ever wrong, you fix it in Mawaqit and the website follows.
+**The prayer times look after themselves.** The adhan times are read from the
+centre's listing on iqamah.co.uk, which publishes the whole year — so there is
+nothing to type in and nothing to do on the first of the month. The **iqamah**
+times are worked out from five numbers you own and can change in ten seconds.
 See [Prayer times](#prayer-times).
 
 ---
@@ -26,10 +26,10 @@ See [Prayer times](#prayer-times).
 * Everything you can see on the site can be **changed from the site itself**,
   once you have logged in. You never have to touch a file to change a word,
   update the prayer times, add an event, or swap a picture.
-* **The prayer times come from the centre's own Mawaqit page**, which is the
-  same timetable that drives the screen in the prayer hall. Nobody types them
-  in twice and the website cannot disagree with the wall. See
-  [Prayer times](#prayer-times).
+* **The adhan times come from the centre's listing on iqamah.co.uk**, a year
+  at a time, so nobody types them in. **The iqamah times are calculated** from
+  a gap per prayer that you set — because the published jamaat columns do not
+  match what happens in the building. See [Prayer times](#prayer-times).
 
 If you only ever read one part of this file, read the next one.
 
@@ -57,57 +57,69 @@ the bar to finish early. If you are on a shared or public computer, log out.
 anywhere in a readable form. Set a new one in Vercel (see *Every setting you
 need in Vercel*, below) and redeploy.
 
-### 2. When the prayer times are wrong
+### 2. When a prayer time is wrong
 
-**You do not type prayer times into this website.** They are read from the
-centre's own page on **Mawaqit** — the same timetable that drives the screen in
-the prayer hall — so changing them in one place changes them everywhere.
+**You do not type prayer times into this website.** Work out which of the two
+kinds is wrong first, because they are fixed in completely different places.
 
-So if a time on the website is wrong, it is wrong in Mawaqit, and Mawaqit is
-where you fix it:
+#### The adhan time is wrong
 
-1. Log in to [admin.mawaqit.net](https://admin.mawaqit.net) and correct it
-   there, the way you already do for the screen.
-2. The website picks the change up **within six hours** on its own.
-3. If you want it now: log in to the website, and press **Refresh from
-   Mawaqit** — the chip beside the timetable, or on the prayer times page.
+That is the time the prayer comes in — Fajr, sunrise, Zuhr, Asr, Maghrib,
+Isha. It is read from the centre's listing at
+**iqamah.co.uk/taiba_welfare_foundation**, which publishes the whole year.
 
-That is the whole job. There is nothing to type, nothing monthly, and nothing
-to remember on the first of the month.
+So it is wrong there, not here, and that is where it has to be corrected. Once
+it is, the website picks it up **within six hours** on its own — or
+immediately if you log in and press **Refresh the times**, the chip beside the
+timetable.
 
-**Jumu'ah comes from Mawaqit too**, including a second or third sitting. The
-Friday panel grows and shrinks with however many are set there.
+#### The iqamah time is wrong
 
-#### If the times look wrong on the live site
+That is the congregation — and **that one is yours**.
 
-Open **`/api/prayer`** on it. `"source": "mawaqit"` means it is working. Anything
-else, and the `reason` field says what to do. Full table under
-[Prayer times](#prayer-times).
+The published file has jamaat columns of its own and the site ignores them,
+because they do not match what actually happens in the building. Instead the
+iqamah is worked out as a gap after each adhan:
 
-The most likely answer on a new deployment is that **the database is not
-connected yet** — the times will still be live and correct, but `"stored"` will
-be `false`. Fix that in *Every setting you need in Vercel*.
+1. Log in, and open **Prayer times settings** — the chip beside the timetable,
+   or on the prayer times page.
+2. Five number boxes, one per prayer. They start at **Fajr 15, Zuhr 20, Asr
+   15, Maghrib 7, Isha 20**.
+3. Change whichever one has moved. Press **Save**.
 
-#### If Mawaqit is ever unreachable
+It is right on the next page load. Nothing is refetched, nothing needs
+refreshing, and the adhan times carry on updating themselves as before.
 
-The site keeps a copy of **the whole year's timetable**, not just today, so an
-outage at Mawaqit is invisible — it carries on working from its own copy and
-only says anything in edit mode, where the line above the table changes to
-*"showing a cached copy"*.
+That is the whole arrangement: **the times the sun decides look after
+themselves, and the times a person decides stay with a person.**
 
-Only if Mawaqit has **never once** been readable does the site fall back to the
-hand-typed rows in edit mode → **Prayer times settings** → *Fallback
-timetable*. Those are placeholders at the moment. They are not worth keeping
-up to date, but they are worth being correct once.
+#### The month, and the year
+
+**The month looks after itself.** The published file holds the whole year, so
+October's times are already in it all through September. Nothing happens on
+the 1st.
+
+**The year is the one to watch.** The file runs to 31 December. If a new one is
+not published in time, the site notices, says so in edit mode, and falls back
+to the typed rows rather than showing nothing.
+
+#### If the listing is ever unreachable
+
+The site keeps a copy of **the whole year**, so an outage is invisible — it
+carries on from its own copy and only mentions it in edit mode, where the line
+above the table changes to *"showing a cached copy"*.
+
+Only if the listing has **never once** been readable does the site fall back to
+the hand-typed rows in **Prayer times settings** → *Fallback timetable*. Those
+are placeholders at the moment.
 
 #### The escape hatch
 
-Edit mode → **Prayer times settings** → *Read the times from* → **manual**.
+**Prayer times settings** → *Read the times from* → **manual**.
 
-That switches the Mawaqit fetch off completely and uses the typed rows. It is
-for one situation only: Mawaqit is wrong or down, the door is right, and you
-need the website right **today**. Put it back to `mawaqit` afterwards, or the
-site quietly stops following the wall.
+That switches the live feed off completely and uses the typed rows. It is for
+one situation only: the feed is wrong or down, the door is right, and you need
+the website right **today**. Put it back to `iqamah` afterwards.
 
 ### 3. Adding an event
 
@@ -255,16 +267,18 @@ api/              Server code. One file = one web address under /api/.
   events.js         The events list. The menu counts these.
   services.js       The rows in the table on Services. Counted too.
   clips.js          Short films for the Recent clips grid on the homepage.
-  prayer.js         TODAY'S PRAYER TIMES, read from Mawaqit and cached.
-  settings.js       Which Mawaqit page to read, the contact details, the social
-                    links, the donation links, the fallback timetable, and every
-                    piece of media that isn't attached to one event.
+  prayer.js         TODAY'S PRAYER TIMES, read from iqamah.co.uk and cached.
+  settings.js       Which listing to read, THE IQAMAH OFFSETS, the contact
+                    details, the social links, the donation links, the fallback
+                    timetable, and every piece of media that isn't attached to
+                    one event.
   seed.js           One-off loader for data/seed.json. Development only.
 
 lib/              Shared helper code used by the api files.
   kv.js             The database. The ONE file to change if we ever move off Redis.
-  mawaqit.js        THE PRAYER TIMES. The one file that knows anything about
-                    Mawaqit — see "Prayer times" below.
+  iqamah.js         THE PRAYER TIMES. The one file that knows where they come
+                    from, and the one that turns an adhan time plus an offset
+                    into an iqamah time — see "Prayer times" below.
   auth.js           Password checking and the signed login cookie.
   http.js           Small helpers: reading a request, cleaning up text and URLs.
   collection.js     A ready-made "list of things" API. Events, services and
@@ -999,12 +1013,13 @@ band, which is pale gold with navy lettering on it at 7.7:1.
 
 Eight chips, all in edit mode:
 
-* **Prayer times settings** — which Mawaqit page to read, and the fallback.
-  You will rarely open it: the times look after themselves.
-* **Refresh from Mawaqit** — beside the timetable. Only for the minute after
-  somebody has changed something in Mawaqit and wants to see it now.
-* **Jumu'ah fallback** — on the Friday panel. Friday normally comes from
-  Mawaqit too.
+* **Prayer times settings** — the five iqamah offsets, which listing to read,
+  and the fallback timetable. The offsets are the part you will actually use.
+* **Refresh the times** — beside the timetable. Only for the minute after
+  something has changed upstream and you want to see it now. It is **not**
+  needed after changing an offset; those apply straight away.
+* **Jumu'ah fallback** — on the Friday panel. Friday normally comes from the
+  listing too.
 * **Hero video & poster** — on the hero itself.
 * **Welcome picture** — beside the welcome paragraph.
 * **Manage services** — under the service tiles, and again on the Services page.
@@ -1055,89 +1070,66 @@ that is not typed in by a person.
 
 It appears in four places — the strip along the bottom of the hero, the full
 table on the homepage, its own page at `/prayer-times`, and a compact copy at
-the foot of Contact. **All four are the same rows from the same fetch.** There
-is one timetable on this site and no way for two copies of it to disagree.
+the foot of Contact. **All four are the same rows from the same fetch.**
 
-### Where they come from
+### The adhan times are read. The iqamah times are calculated.
 
-The centre already keeps its timetable in **Mawaqit**, at
-`mawaqit.net/en/taiba-welfare-foundation-greater-london-ha8-7lg-united-kingdom`.
-That is what drives the screen in the prayer hall, and this site reads the same
-page.
+That split is the whole design, and it is worth being plain about why.
 
-That decision is the important one. The alternative — a box on the website that
-somebody types eighteen numbers into every month — guarantees that one day the
-website and the wall disagree, and the website is the one a stranger trusts
-before they set off.
+The centre is listed at **iqamah.co.uk/taiba_welfare_foundation**, which
+publishes **the whole year as a CSV**. The times the sun decides — Fajr,
+sunrise, Zuhr, Asr, Maghrib, Isha — are read straight from it and will always
+be right, with nothing to do at the end of a month.
 
-**They are still not calculated.** Nothing here works times out from a latitude
-and a calculation method, and it should not: a jama'ah is a decision the imam
-makes, it gets rounded, it holds steady for a fortnight, it moves for Ramadan.
-The site copies the mosque's own numbers. It just copies them from Mawaqit
-rather than from a person retyping them.
+That file carries jamaat columns of its own and **they are not used**. On the
+day this was written they said Isha jama'ah was at 21:00 when the centre prays
+it at 20:29, and Zuhr at 13:30 against an actual 13:17. They are whatever the
+upstream feed happens to hold, not what happens in the building.
+
+So the congregation times are worked out instead, as a gap after each adhan:
+
+| | Minutes after the adhan |
+|---|---|
+| Fajr | 15 |
+| Zuhr | 20 |
+| Asr | 15 |
+| Maghrib | 7 |
+| Isha | 20 |
+
+**Those five numbers are the only thing anybody at the centre has to own.**
+Edit mode → **Prayer times settings** → five plain number boxes. Change one,
+press Save, and it is right on the next page load — nothing is refetched,
+because the offsets are applied when the page is drawn rather than when the
+file is fetched.
+
+That is the arrangement you asked for: the adhan times stay connected and
+update themselves forever, and the iqamah stays under a person's control
+without them ever having to touch a timetable.
+
+### The end of the month, and the end of the year
+
+**The month looks after itself.** The published file holds the whole year, so
+October is already in it all through September. Nothing happens on the 1st.
+
+**The year is the one to watch.** The file runs to 31 December. If a new one is
+not published, the site notices that the file no longer reaches today, says so
+in edit mode — *"The published timetable only runs to 2026-12-31, so it has no
+times for today"* — and falls back to the typed rows rather than showing
+nothing. Refreshing picks up a new file the moment it appears.
 
 ### How the reading works
 
-`lib/mawaqit.js` is the only file that knows anything about Mawaqit. It fetches
-the mosque's public page and pulls out `confData`, the configuration blob the
-Mawaqit screen app itself reads, which carries:
+`lib/iqamah.js` is the only file that knows where the times come from. It
+fetches two things:
 
 | | |
 |---|---|
-| `calendar` | the whole year, six times a day: Fajr, Shuruq, Zuhr, Asr, Maghrib, Isha — when each **begins** |
-| `iqamaCalendar` | the same year, five times a day — the **jama'ah** times |
-| `jumua`, `jumua2`, `jumua3` | Friday |
-| `timeDisplayFormat` | 12- or 24-hour, the mosque's own choice |
+| `data/mosques/<slug>.json` | the centre's details, the timezone, the Jumu'ah times — and the name of its own CSV, so the filename is never guessed |
+| `data/<slug>.csv` | 365 rows, one per day |
 
-**The whole year is cached, not just today.** It is the same single request
-either way, and it means the site works out today's times from its own copy
-from then on — so an outage at Mawaqit costs nothing until the cache is next
-refreshed, which may be days later. There is no day on which the prayer times
-can simply fail to appear.
-
-The cache is refreshed when it is more than **six hours** old. A refresh is
-only ever picking up an *edit* the mosque has made, and those happen a few
-times a year — fetching more often would put load on somebody else's server for
-nothing.
-
-### The site shows the times the way the mosque does
-
-Mawaqit stores whether the centre displays 12- or 24-hour, and the website
-follows it rather than imposing a house style. Taiba is set to 24-hour, so the
-site shows `13:17` — the same characters as the screen someone just walked past.
-Change it in Mawaqit and the website changes with it.
-
-### Today, in the right timezone
-
-Vercel runs functions in UTC and a visitor could be anywhere, so "today" is
-worked out in **the mosque's** timezone, which Mawaqit also publishes. Without
-that, for an hour every British Summer Time night the site would show
-yesterday's timetable.
-
-### Is Mawaqit actually connected?
-
-Open **`/api/prayer`** on the site. It answers in one line:
-
-```json
-{ "prayer": { "source": "mawaqit", "cache": "store", "stored": true, … } }
-```
-
-| Field | What it means |
-|---|---|
-| `source` | `mawaqit` — the live timetable. `manual` — the typed fallback, and `reason` says why |
-| `cache` | `fresh` just fetched · `memory` this instance's copy · `store` the database's copy |
-| `stored` | `false` means the copy is only in memory, because **no database is connected** |
-| `stale` | `true` means Mawaqit could not be reached and this is an older copy |
-| `fetchedAt` | when it was last actually read from Mawaqit |
-
-`"source": "manual"` with a `reason` is the one to act on. The reason is one of
-three things, and they need completely different fixes: no Mawaqit page set,
-switched to manual on purpose, or Mawaqit itself returned an error.
-
-**`"stored": false` is worth fixing but is not urgent.** The times are live and
-correct; they are just being re-fetched on every cold start rather than kept.
-It means the database is not connected — see *Every setting you need in
-Vercel*. Edit mode says so under the timetable too.
+Only the adhan columns are kept. The jamaat columns are dropped at the point of
+reading rather than ignored later, so there is no way for them to reach the
+page by accident.
 
 ### Three caches, and why
 
@@ -1145,7 +1137,7 @@ Vercel*. Edit mode says so under the timetable too.
 |---|---|---|
 | The instance's memory | 15 minutes | back-to-back requests, and a site with no database at all |
 | The database | 6 hours | every instance, every cold start |
-| Mawaqit | — | the source of truth |
+| iqamah.co.uk | — | the source |
 
 The memory tier is short-lived on purpose: it is per instance, so a long life
 there would mean two instances disagreeing about the times for hours.
@@ -1153,8 +1145,36 @@ there would mean two instances disagreeing about the times for hours.
 **Caching is allowed to fail.** The database write is in its own try/catch, and
 a failed write never throws away a good fetch. It used to: on a deployment with
 no database the write threw, a perfectly good set of times went with it, and
-the site quietly showed the typed placeholders. It looked exactly like Mawaqit
-being broken, and Mawaqit was fine.
+the site quietly showed the typed placeholders. It looked exactly like the feed
+being broken, and the feed was fine.
+
+### Is the feed actually connected?
+
+Open **`/api/prayer`** on the site. It answers in one line:
+
+```json
+{ "prayer": { "source": "iqamah", "cache": "store", "stored": true, … } }
+```
+
+| Field | What it means |
+|---|---|
+| `source` | `iqamah` — the live timetable. `manual` — the typed fallback, and `reason` says why |
+| `cache` | `fresh` just fetched · `memory` this instance's copy · `store` the database's copy |
+| `stored` | `false` means the copy is only in memory, because **no database is connected** |
+| `stale` | `true` means the listing could not be reached and this is an older copy |
+| `offsets` | the gaps the iqamah times were worked out with |
+| `covers` | the span of the published file — watch this at the end of the year |
+| `fetchedAt` | when it was last actually read |
+
+`"source": "manual"` with a `reason` is the one to act on. **`"stored": false`
+is worth fixing but is not urgent** — the times are live and correct, they are
+just being re-fetched on every cold start rather than kept. Edit mode says so
+under the timetable too.
+
+If an **adhan** time is wrong, it is wrong at iqamah.co.uk and has to be fixed
+there. If an **iqamah** time is wrong, it is one of the five offsets and it is
+yours to fix. The credit line under the table exists so that whoever spots it
+knows which of the two they are looking at.
 
 ### What happens when it fails
 
@@ -1162,21 +1182,15 @@ In order, and all of it in `api/prayer.js`:
 
 | | What a visitor sees |
 |---|---|
-| Normal | Today's times, credited to Mawaqit under the table |
-| Mawaqit unreachable, cache exists | **The same times**, from the cached year. Edit mode says "showing a cached copy"; a visitor is told nothing, because nothing is wrong |
-| Mawaqit has never worked | The hand-typed fallback rows from settings, with the reason in edit mode |
+| Normal | Today's times, credited to iqamah.co.uk under the table |
+| Listing unreachable, cache exists | **The same times**, from the cached year. Edit mode says "showing a cached copy"; a visitor is told nothing, because nothing is wrong |
+| Cache exists but does not reach today | Treated as no cache — it goes looking for a new file |
+| Listing has never worked | The hand-typed fallback rows from settings, with the reason in edit mode |
 | `prayerSource` set to `manual` | The hand-typed rows, deliberately |
 
-There is no fifth case where the page has nothing to show. That is the whole
-design: a mosque website that cannot answer "when is the next prayer" has
-failed at the one job it has.
-
-### The credit line
-
-One quiet line above the table naming Mawaqit and linking to the centre's page
-there. It is not decoration — somebody who spots a wrong time needs to know it
-is wrong in the mosque's Mawaqit account and not on this website, or they
-report it to the wrong people and it never gets fixed.
+There is no case where the page has nothing to show. That is the whole design:
+a mosque website that cannot answer "when is the next prayer" has failed at the
+one job it has.
 
 ### The "next prayer" highlight
 
@@ -1194,18 +1208,23 @@ time of day, not a prayer. After Isha the highlight moves to tomorrow's Fajr.
 
 It is in the table because it is when Fajr runs out, not because anything is
 prayed then. The jama'ah cell shows a dash, and reads "No congregation at
-sunrise" to a screen reader. It used to repeat the sunrise time in that column,
-which said there was a congregation at 06:49 — there is not.
+sunrise" to a screen reader.
 
-### If the mosque ever moves off Mawaqit
+### Times are shown as 24-hour
 
-`lib/mawaqit.js` is the only file to rewrite. Everything above it asks for
+Which is what the centre's own displays use. If you would rather the public
+site showed `1.17pm`, it is a small change in `lib/iqamah.js` — say the word.
+
+### If the centre ever moves off iqamah.co.uk
+
+`lib/iqamah.js` is the only file to rewrite. Everything above it asks for
 `{ name, begins, jamaah }` rows and does not care where they came from — the
-page, the hero strip and the highlight were all written against hand-typed rows
-and none of them changed to read these instead.
+page, the hero strip and the highlight were all written against hand-typed
+rows and none of them changed to read these instead.
 
-Mawaqit also has a documented API at `/api/2.0/`, which needs a key issued to
-the mosque. If the centre gets one, that is a change to `fetchMosque()` alone.
+Worth knowing: iqamah.co.uk sources this centre's data from Mawaqit, so the
+adhan times are Mawaqit's either way. The site read Mawaqit directly for one
+commit before this; it is in the git history if it is ever wanted.
 
 ---
 
@@ -1906,8 +1925,8 @@ Honest list, so nothing is a surprise later:
   you cannot edit it* — it has to be checked before launch, and it is changed
   in the code on purpose.
 * **The typed fallback times are placeholders.** They are only ever reached if
-  Mawaqit has never once been readable, so they are unlikely to be seen — but
-  they are wrong, and worth ten minutes one day.
+  the listing has never once been readable, so they are unlikely to be seen —
+  but they are wrong, and worth ten minutes one day.
 * **A service's description is not shown on a desktop.** The row is two
   columns by design — name and type — so the line you write only appears on a
   phone. If you want it on the desktop row too, say so: it is a few lines.
@@ -1934,9 +1953,11 @@ Honest list, so nothing is a surprise later:
 If you do nothing else, do these, in this order. Everything here is done from
 inside the site with no code and no deploy.
 
-1. **Check the prayer times.** They should already be right — they come from
-   Mawaqit on their own. Open the homepage and make sure the strip along the
-   bottom of the hero matches the screen in the prayer hall.
+1. **Check the prayer times.** The adhan times should already be right — they
+   come from iqamah.co.uk on their own. Open the homepage and check the strip
+   along the bottom of the hero against the screen in the prayer hall. If the
+   **iqamah** times are out, the five offsets are in edit mode → *Prayer times
+   settings*.
 2. **The address, the phone number and the email.** Edit mode → **Contact
    details & social links** in the footer. Until the address is in, the footer
    and the Contact page both say so.

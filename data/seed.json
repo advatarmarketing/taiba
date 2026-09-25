@@ -43,10 +43,18 @@
         "alt": ""
       }
     },
-    "//mawaqit": "The centre's own page on mawaqit.net — the same timetable that drives the screen in the prayer hall. The site reads it so nobody types the times in twice. Set prayerSource to 'manual' to switch the fetch off and use the typed rows below instead.",
-    "mawaqitSlug": "taiba-welfare-foundation-greater-london-ha8-7lg-united-kingdom",
-    "prayerSource": "mawaqit",
-    "//prayer": "THE FALLBACK, not the live timetable — Mawaqit is. These rows are what the site shows if Mawaqit has never once been reachable, and what it uses if prayerSource is set to 'manual'. Sunrise has no jama'ah, which is why that cell is blank.",
+    "//iqamah": "The centre's listing on iqamah.co.uk, which publishes the whole year as a CSV. The site reads the ADHAN times from it and works the iqamah times out from iqamahOffsets below — the listing's own jamaat columns are not used, because they do not match what happens in the building. Set prayerSource to 'manual' to switch the fetch off and use the typed rows instead.",
+    "iqamahSlug": "taiba_welfare_foundation",
+    "prayerSource": "iqamah",
+    "//iqamahOffsets": "MINUTES AFTER THE ADHAN for each congregation. Change these in edit mode whenever the centre changes the gap — the adhan times keep updating themselves either way.",
+    "iqamahOffsets": {
+      "fajr": 15,
+      "zuhr": 20,
+      "asr": 15,
+      "maghrib": 7,
+      "isha": 20
+    },
+    "//prayer": "THE FALLBACK, not the live timetable — iqamah.co.uk is. These rows are what the site shows if the listing has never once been reachable, and what it uses if prayerSource is set to 'manual'. Sunrise has no jama'ah, which is why that cell is blank.",
     "prayer": [
       {
         "name": "Fajr",
