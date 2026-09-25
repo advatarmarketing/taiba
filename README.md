@@ -7,9 +7,11 @@ This README is written for someone who is **not** a developer. It explains what
 each file is for, how to run the site on your own computer, and how the "edit
 the words on the site" feature works.
 
-**If you only do one thing on this site, it is the prayer timetable.** Jump to
-[Prayer times](#prayer-times) — it is one box, it takes two minutes, and it is
-what most of your visitors came for.
+**The prayer times look after themselves.** They are read from the centre's own
+Mawaqit page — the same timetable that drives the screen in the prayer hall —
+so there is nothing to type in here and nothing to do on the first of the
+month. If a time is ever wrong, you fix it in Mawaqit and the website follows.
+See [Prayer times](#prayer-times).
 
 ---
 
@@ -24,8 +26,10 @@ what most of your visitors came for.
 * Everything you can see on the site can be **changed from the site itself**,
   once you have logged in. You never have to touch a file to change a word,
   update the prayer times, add an event, or swap a picture.
-* **The prayer times are typed in, not calculated** — and that is on purpose.
-  See [Prayer times](#prayer-times).
+* **The prayer times come from the centre's own Mawaqit page**, which is the
+  same timetable that drives the screen in the prayer hall. Nobody types them
+  in twice and the website cannot disagree with the wall. See
+  [Prayer times](#prayer-times).
 
 If you only ever read one part of this file, read the next one.
 
@@ -53,47 +57,47 @@ the bar to finish early. If you are on a shared or public computer, log out.
 anywhere in a readable form. Set a new one in Vercel (see *Every setting you
 need in Vercel*, below) and redeploy.
 
-### 2. Updating the prayer times
+### 2. When the prayer times are wrong
 
-**The one you will do every month.** It takes two minutes.
+**You do not type prayer times into this website.** They are read from the
+centre's own page on **Mawaqit** — the same timetable that drives the screen in
+the prayer hall — so changing them in one place changes them everywhere.
 
-1. Log in.
-2. Click **Prayer times** — the chip is on the hero, beside the timetable, on
-   the prayer times page, and in the footer. Any of them opens the same form.
-3. You get **one box** with a line per prayer, and the three columns separated
-   by a bar:
+So if a time on the website is wrong, it is wrong in Mawaqit, and Mawaqit is
+where you fix it:
 
-   ```
-   Fajr | 4.20am | 5.00am
-   Sunrise | 5.55am |
-   Zuhr | 1.05pm | 1.30pm
-   Asr | 5.30pm | 6.15pm
-   Maghrib | 8.40pm | 8.45pm
-   Isha | 10.10pm | 10.30pm
-   ```
+1. Log in to [admin.mawaqit.net](https://admin.mawaqit.net) and correct it
+   there, the way you already do for the screen.
+2. The website picks the change up **within six hours** on its own.
+3. If you want it now: log in to the website, and press **Refresh from
+   Mawaqit** — the chip beside the timetable, or on the prayer times page.
 
-   That is **name | begins | jama'ah**. Type straight down the list off the
-   printed timetable. Sunrise has no jama'ah, so leave the last column empty.
-4. Press **Save**. It is live everywhere on the site at once.
+That is the whole job. There is nothing to type, nothing monthly, and nothing
+to remember on the first of the month.
 
-**Write the times however you say them.** "5.00am", "05:00" and "5:00 AM" are
-all fine and all shown exactly as you typed them. Nothing is recalculated and
-nothing is rounded.
+**Jumu'ah comes from Mawaqit too**, including a second or third sitting. The
+Friday panel grows and shrinks with however many are set there.
 
-**Adding a row** — Tarawih in Ramadan, say — is one more line, and taking it
-off again afterwards is deleting that line. Extra rows appear after the usual
-six.
+#### If Mawaqit is ever unreachable
 
-**Jumu'ah** is a second, separate chip on the Friday panel, and works the same
-way with two columns, "what | time":
+The site keeps a copy of **the whole year's timetable**, not just today, so an
+outage at Mawaqit is invisible — it carries on working from its own copy and
+only says anything in edit mode, where the line above the table changes to
+*"showing a cached copy"*.
 
-```
-Doors open | 12.30pm
-Khutbah | 1.15pm
-Jama'ah | 1.40pm
-```
+Only if Mawaqit has **never once** been readable does the site fall back to the
+hand-typed rows in edit mode → **Prayer times settings** → *Fallback
+timetable*. Those are placeholders at the moment. They are not worth keeping
+up to date, but they are worth being correct once.
 
-A mosque with two sittings adds a second line and the panel grows.
+#### The escape hatch
+
+Edit mode → **Prayer times settings** → *Read the times from* → **manual**.
+
+That switches the Mawaqit fetch off completely and uses the typed rows. It is
+for one situation only: Mawaqit is wrong or down, the door is right, and you
+need the website right **today**. Put it back to `mawaqit` afterwards, or the
+site quietly stops following the wall.
 
 ### 3. Adding an event
 
@@ -241,13 +245,16 @@ api/              Server code. One file = one web address under /api/.
   events.js         The events list. The menu counts these.
   services.js       The rows in the table on Services. Counted too.
   clips.js          Short films for the Recent clips grid on the homepage.
-  settings.js       THE PRAYER TIMETABLE and Jumu'ah, the contact details, the
-                    social links, the donation links, and every piece of media
-                    that isn't attached to one event.
+  prayer.js         TODAY'S PRAYER TIMES, read from Mawaqit and cached.
+  settings.js       Which Mawaqit page to read, the contact details, the social
+                    links, the donation links, the fallback timetable, and every
+                    piece of media that isn't attached to one event.
   seed.js           One-off loader for data/seed.json. Development only.
 
 lib/              Shared helper code used by the api files.
   kv.js             The database. The ONE file to change if we ever move off Redis.
+  mawaqit.js        THE PRAYER TIMES. The one file that knows anything about
+                    Mawaqit — see "Prayer times" below.
   auth.js           Password checking and the signed login cookie.
   http.js           Small helpers: reading a request, cleaning up text and URLs.
   collection.js     A ready-made "list of things" API. Events, services and
@@ -982,10 +989,12 @@ band, which is pale gold with navy lettering on it at 7.7:1.
 
 Eight chips, all in edit mode:
 
-* **Prayer times** — on the hero, beside the timetable, on the prayer times
-  page and in the footer. It is reachable from four places because it is the
-  one thing on this site somebody comes back to change on a schedule.
-* **Jumu'ah** — on the Friday panel.
+* **Prayer times settings** — which Mawaqit page to read, and the fallback.
+  You will rarely open it: the times look after themselves.
+* **Refresh from Mawaqit** — beside the timetable. Only for the minute after
+  somebody has changed something in Mawaqit and wants to see it now.
+* **Jumu'ah fallback** — on the Friday panel. Friday normally comes from
+  Mawaqit too.
 * **Hero video & poster** — on the hero itself.
 * **Welcome picture** — beside the welcome paragraph.
 * **Manage services** — under the service tiles, and again on the Services page.
@@ -1031,57 +1040,120 @@ you so in small type beside the chip.
 
 ## Prayer times
 
-The most-visited page on any mosque's website, and the only thing on this site
-that somebody comes back to change on a schedule. It has its own page at
-`/prayer-times`, a strip across the bottom of the hero, the full table on the
-homepage, and the compact version at the foot of Contact.
+The most-visited page on any mosque's website, and the only part of this site
+that is not typed in by a person.
 
-**All four are the same six stored rows.** There is exactly one timetable on
-this site and no way for two copies of it to disagree.
+It appears in four places — the strip along the bottom of the hero, the full
+table on the homepage, its own page at `/prayer-times`, and a compact copy at
+the foot of Contact. **All four are the same rows from the same fetch.** There
+is one timetable on this site and no way for two copies of it to disagree.
 
-### They are typed in, not calculated
+### Where they come from
 
-This is a decision, not a shortcut. It would be perfectly possible to work the
-times out in the browser from a latitude and a calculation method, and it would
-be the wrong thing to do:
+The centre already keeps its timetable in **Mawaqit**, at
+`mawaqit.net/en/taiba-welfare-foundation-greater-london-ha8-7lg-united-kingdom`.
+That is what drives the screen in the prayer hall, and this site reads the same
+page.
 
-* A mosque's **jama'ah** times are a decision the imam makes, not an
-  astronomical fact.
-* They get rounded, they hold steady for a fortnight at a time, they move for
-  Ramadan, and they are what is printed on the door.
-* A calculated timetable that disagrees with the door is worse than no
-  timetable at all — somebody misses a prayer because of it.
+That decision is the important one. The alternative — a box on the website that
+somebody types eighteen numbers into every month — guarantees that one day the
+website and the wall disagree, and the website is the one a stranger trusts
+before they set off.
 
-The website's job is to show the same numbers as the door. So it is one box you
-type into, and the times are stored and displayed exactly as typed. See
-**Updating the prayer times** near the top of this file.
+**They are still not calculated.** Nothing here works times out from a latitude
+and a calculation method, and it should not: a jama'ah is a decision the imam
+makes, it gets rounded, it holds steady for a fortnight, it moves for Ramadan.
+The site copies the mosque's own numbers. It just copies them from Mawaqit
+rather than from a person retyping them.
+
+### How the reading works
+
+`lib/mawaqit.js` is the only file that knows anything about Mawaqit. It fetches
+the mosque's public page and pulls out `confData`, the configuration blob the
+Mawaqit screen app itself reads, which carries:
+
+| | |
+|---|---|
+| `calendar` | the whole year, six times a day: Fajr, Shuruq, Zuhr, Asr, Maghrib, Isha — when each **begins** |
+| `iqamaCalendar` | the same year, five times a day — the **jama'ah** times |
+| `jumua`, `jumua2`, `jumua3` | Friday |
+| `timeDisplayFormat` | 12- or 24-hour, the mosque's own choice |
+
+**The whole year is cached, not just today.** It is the same single request
+either way, and it means the site works out today's times from its own copy
+from then on — so an outage at Mawaqit costs nothing until the cache is next
+refreshed, which may be days later. There is no day on which the prayer times
+can simply fail to appear.
+
+The cache is refreshed when it is more than **six hours** old. A refresh is
+only ever picking up an *edit* the mosque has made, and those happen a few
+times a year — fetching more often would put load on somebody else's server for
+nothing.
+
+### The site shows the times the way the mosque does
+
+Mawaqit stores whether the centre displays 12- or 24-hour, and the website
+follows it rather than imposing a house style. Taiba is set to 24-hour, so the
+site shows `13:17` — the same characters as the screen someone just walked past.
+Change it in Mawaqit and the website changes with it.
+
+### Today, in the right timezone
+
+Vercel runs functions in UTC and a visitor could be anywhere, so "today" is
+worked out in **the mosque's** timezone, which Mawaqit also publishes. Without
+that, for an hour every British Summer Time night the site would show
+yesterday's timetable.
+
+### What happens when it fails
+
+In order, and all of it in `api/prayer.js`:
+
+| | What a visitor sees |
+|---|---|
+| Normal | Today's times, credited to Mawaqit under the table |
+| Mawaqit unreachable, cache exists | **The same times**, from the cached year. Edit mode says "showing a cached copy"; a visitor is told nothing, because nothing is wrong |
+| Mawaqit has never worked | The hand-typed fallback rows from settings |
+| `prayerSource` set to `manual` | The hand-typed rows, deliberately |
+
+There is no fifth case where the page has nothing to show. That is the whole
+design: a mosque website that cannot answer "when is the next prayer" has
+failed at the one job it has.
+
+### The credit line
+
+One quiet line above the table naming Mawaqit and linking to the centre's page
+there. It is not decoration — somebody who spots a wrong time needs to know it
+is wrong in the mosque's Mawaqit account and not on this website, or they
+report it to the wrong people and it never gets fixed.
 
 ### The "next prayer" highlight
 
 Whichever prayer is next is underlined in gold, in the hero strip and in the
-table, and it updates on the minute — lined up with the clock, not on a plain
-60-second timer, so it can never be up to a minute late.
+table, and it updates on the minute — lined up with the clock rather than on a
+plain 60-second timer, so it can never be a minute late.
 
-It is **entirely optional decoration**. The browser makes one attempt to read
-each time and silently skips anything it cannot, and every time is already
-printed in the page — so with JavaScript broken or a time typed in a way it
-doesn't recognise, you get a correct timetable with no highlight on it rather
-than a wrong one.
+It is **entirely optional decoration**. Every time is already printed in the
+page, and the browser makes one attempt to read each one and silently skips
+anything it cannot — so with JavaScript broken you get a correct timetable with
+no highlight, rather than a wrong one. Sunrise is never highlighted; it is a
+time of day, not a prayer. After Isha the highlight moves to tomorrow's Fajr.
 
-Sunrise is never highlighted; it is a time of day, not a prayer. After Isha the
-highlight moves to tomorrow's Fajr, which is the earliest time on the page.
+### Sunrise has no jama'ah
 
-### Empty states
+It is in the table because it is when Fajr runs out, not because anything is
+prayed then. The jama'ah cell shows a dash, and reads "No congregation at
+sunrise" to a screen reader. It used to repeat the sunrise time in that column,
+which said there was a congregation at 06:49 — there is not.
 
-| What is set | What a visitor sees |
-|---|---|
-| Nothing at all | **No strip on the hero**, and an empty-state note where the table is |
-| Some of the six | The full table, with `—` in the cells you have not filled in |
-| No Jumu'ah times | No Friday panel at all |
+### If the mosque ever moves off Mawaqit
 
-An empty strip of six dashes across the hero would look like something failing
-to load, which is why a visitor gets no strip instead. In edit mode it is
-always there, with a way in.
+`lib/mawaqit.js` is the only file to rewrite. Everything above it asks for
+`{ name, begins, jamaah }` rows and does not care where they came from — the
+page, the hero strip and the highlight were all written against hand-typed rows
+and none of them changed to read these instead.
+
+Mawaqit also has a documented API at `/api/2.0/`, which needs a key issued to
+the mosque. If the centre gets one, that is a change to `fetchMosque()` alone.
 
 ---
 
@@ -1707,10 +1779,10 @@ ships with six placeholder services so it is never empty on a new site.
 
 ### The prayer timetable
 
-The one grid on the site that is **always the same six rows**, whether or not
-anybody has typed anything into them — see [Prayer times](#prayer-times). A
-mosque that has filled in only Fajr gets a complete table with five rows
-waiting in it, rather than one lonely row that looks like the page is broken.
+The one grid on the site that is **always the same six rows** — see
+[Prayer times](#prayer-times). Even on the fallback path, a timetable with only
+Fajr filled in gets a complete table with five rows waiting in it rather than
+one lonely row that looks like the page is broken.
 
 ### Everywhere else
 
@@ -1781,8 +1853,9 @@ Honest list, so nothing is a surprise later:
   That is the safe default and it may be wrong. See *The small print, and why
   you cannot edit it* — it has to be checked before launch, and it is changed
   in the code on purpose.
-* **The prayer times in the box are placeholders**, roughly right for London in
-  the middle of the year and wrong today. Replace all of them on day one.
+* **The typed fallback times are placeholders.** They are only ever reached if
+  Mawaqit has never once been readable, so they are unlikely to be seen — but
+  they are wrong, and worth ten minutes one day.
 * **A service's description is not shown on a desktop.** The row is two
   columns by design — name and type — so the line you write only appears on a
   phone. If you want it on the desktop row too, say so: it is a few lines.
@@ -1809,7 +1882,9 @@ Honest list, so nothing is a surprise later:
 If you do nothing else, do these, in this order. Everything here is done from
 inside the site with no code and no deploy.
 
-1. **The prayer times.** Edit mode → **Prayer times**. Then **Jumu'ah**.
+1. **Check the prayer times.** They should already be right — they come from
+   Mawaqit on their own. Open the homepage and make sure the strip along the
+   bottom of the hero matches the screen in the prayer hall.
 2. **The address, the phone number and the email.** Edit mode → **Contact
    details & social links** in the footer. Until the address is in, the footer
    and the Contact page both say so.

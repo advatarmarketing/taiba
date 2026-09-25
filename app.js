@@ -182,6 +182,7 @@ const api = {
 const state = {
   copy: null,            // { "home.hero.title": "…" } — your text overrides
   settings: null,        // the contact email, social links and site-wide media
+  prayer: null,          // today's times, from Mawaqit — see api/prayer.js
   events: null,          // the events list — the menu counts these
   services: null,        // the rows in the table on Services
   clips: null,           // short films for the homepage grid
@@ -195,6 +196,7 @@ const state = {
 const CACHE_KEYS = {
   copy: '/api/copy',
   settings: '/api/settings',
+  prayer: '/api/prayer',
   events: '/api/events',
   services: '/api/services',
   clips: '/api/clips',
@@ -204,6 +206,7 @@ const CACHE_KEYS = {
 function unwrap(key, payload) {
   if (key === 'copy') return payload.copy;
   if (key === 'settings') return payload.settings;
+  if (key === 'prayer') return payload.prayer;
   return payload.items;
 }
 
@@ -749,15 +752,25 @@ const PRAYERS = ['Fajr', 'Sunrise', 'Zuhr', 'Asr', 'Maghrib', 'Isha'];
 const NO_JAMAAH = new Set(['sunrise', 'shuruq', 'shurooq', 'sunset']);
 
 /**
- * The stored timetable, padded out to the six rows the table always shows.
+ * Today's timetable, padded out to the six rows the table always shows.
+ *
+ * WHERE THE ROWS COME FROM. `state.prayer` is today's times read from the
+ * centre's own Mawaqit page — the same timetable as the screen in the prayer
+ * hall — and it is preferred whenever it is there. The hand-typed rows in
+ * settings are the fallback for the one case where Mawaqit has never been
+ * reachable at all. api/prayer.js decides between them; this function only
+ * has to notice which arrived.
  *
  * A mosque that has filled in only Fajr still gets a complete table with five
  * rows waiting in it, rather than one lonely row that looks like the page is
- * broken. Anything typed in beyond the six — a mosque that lists Tahajjud in
- * Ramadan, say — is kept and shown after them.
+ * broken. Anything beyond the six — Tarawih in Ramadan, say — is kept and
+ * shown after them.
  */
 function prayerRows(settings) {
-  const stored = Array.isArray(settings?.prayer) ? settings.prayer : [];
+  const live = Array.isArray(state.prayer?.times) ? state.prayer.times : [];
+  const stored = live.length
+    ? live
+    : (Array.isArray(settings?.prayer) ? settings.prayer : []);
   const find = (name) => stored.find((row) =>
     String(row?.name ?? '').trim().toLowerCase() === name.toLowerCase());
 
@@ -1290,17 +1303,25 @@ function prayerTable(settings, { compact = false } = {}) {
       ${compact ? '' : `<td class="prayer-begins">${esc(entry.begins || '—')}</td>`}
       <td class="prayer-jamaah">${
         /*
-          Sunrise has no congregation, and an em dash in that cell reads as a
-          missing time rather than as a prayer nobody prays together. The word
-          is quieter and truer.
+          SUNRISE HAS NO CONGREGATION, and this cell used to repeat the time
+          sunrise begins — which reads as "there is a jama'ah at 06:49", and
+          there is not. Nobody prays together at sunrise; it is in the table
+          because it is when Fajr runs out.
+
+          So the cell is a dash, held back in the quiet colour, with the
+          reason said in full for anyone using a screen reader — who would
+          otherwise hear "dash" and be none the wiser.
         */
-        quiet ? `<span class="prayer-none">${esc(entry.begins || '—')}</span>`
-              : esc(entry.jamaah || entry.begins || '—')
+        quiet
+          ? `<span class="prayer-none" aria-hidden="true">&mdash;</span>
+             <span class="visually-hidden">No congregation at sunrise</span>`
+          : esc(entry.jamaah || entry.begins || '—')
       }</td>
     </tr>`;
   };
 
   return `
+  ${prayerCredit()}
   <table class="prayer-table" data-prayer-table>
     <caption class="visually-hidden">Prayer times at Taiba Islamic Centre</caption>
     <thead>
@@ -1314,9 +1335,54 @@ function prayerTable(settings, { compact = false } = {}) {
   </table>`;
 }
 
+/**
+ * Where these times came from, said out loud.
+ *
+ * Visitors get one quiet line naming Mawaqit and linking to the centre's page
+ * there. That is not decoration: it tells somebody who spots a wrong time
+ * exactly where it is wrong, which is the mosque's own Mawaqit account and
+ * not this website.
+ *
+ * Edit mode gets the rest of the truth — when it was last read, and whether
+ * what is on screen is a cached copy because Mawaqit could not be reached.
+ */
+function prayerCredit() {
+  const feed = state.prayer;
+  if (feed?.source !== 'mawaqit') {
+    /* Typed by hand. Nothing to credit, but whoever is logged in should know
+       that the live feed is not the thing they are looking at. */
+    return editOnly(`
+      <p class="prayer-credit prayer-credit--warn">${icon('alert')}
+        <span>These are the typed fallback times. Mawaqit is switched off, or has never been reachable.</span>
+      </p>`);
+  }
+
+  const when = feed.fetchedAt ? new Date(feed.fetchedAt) : null;
+  const read = when && !Number.isNaN(when.getTime())
+    ? when.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  return `
+    <p class="prayer-credit">
+      <span data-copy="prayer.credit">Times from</span>
+      <a class="text-link" href="${safeUrl(feed.mosque?.url) || '#'}" target="_blank" rel="noopener noreferrer">Mawaqit</a>${
+        editOnly(`<span class="prayer-credit-meta">${
+          feed.stale
+            ? `${icon('alert')} showing a cached copy — Mawaqit could not be reached`
+            : `read ${esc(read)}`
+        }</span>`)
+      }
+    </p>`;
+}
+
 /** The Jumu'ah panel — the one prayer people travel for. */
 function jumuahPanel(settings) {
-  const rows = Array.isArray(settings?.jumuah) ? settings.jumuah : [];
+  /* Friday comes from Mawaqit too, where it is one or two or three sittings
+     rather than a fixed shape — see jumuaRows() in lib/mawaqit.js. */
+  const live = Array.isArray(state.prayer?.jumua) ? state.prayer.jumua : [];
+  const rows = live.length
+    ? live
+    : (Array.isArray(settings?.jumuah) ? settings.jumuah : []);
 
   const body = rows.length
     ? `<dl class="jumuah-list">${rows.map((entry) => `
@@ -1361,7 +1427,8 @@ function prayerSection(settings) {
       <div class="prayer-card" data-reveal>
         ${prayerTable(settings, { compact: false })}
         ${editOnly(`<div class="prayer-edit">
-          <button type="button" class="edit-chip" data-edit="prayer">${icon('pencil')} Edit the timetable</button>
+          <button type="button" class="edit-chip" data-edit="prayer">${icon('pencil')} Prayer times settings</button>
+          <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('clock')} Refresh from Mawaqit</button>
         </div>`)}
       </div>
 
@@ -2154,8 +2221,9 @@ async function renderPrayerTimes() {
       </p>
 
       ${editOnly(`<div style="margin-top:var(--space-2)">
-        <button type="button" class="edit-chip" data-edit="prayer">${icon('clock')} Edit the timetable</button>
-        <button type="button" class="edit-chip" data-edit="jumuah">${icon('pencil')} Edit Jumu&#39;ah</button>
+        <button type="button" class="edit-chip" data-edit="prayer">${icon('clock')} Prayer times settings</button>
+        <button type="button" class="edit-chip" data-edit="prayer-refresh">${icon('arrowDown')} Refresh from Mawaqit</button>
+        <button type="button" class="edit-chip" data-edit="jumuah">${icon('pencil')} Jumu&#39;ah fallback</button>
       </div>`)}
     </section>
 
@@ -5417,6 +5485,18 @@ function openSettingsEditor({ title, subtitle, fields }) {
         try {
           const { settings } = await api.put('/api/settings', readForm(form, fields));
           state.settings = settings;
+
+          /*
+            The prayer times are not IN settings — they are fetched from
+            Mawaqit and cached — but two of the settings decide which page is
+            read and whether it is read at all. So the cached times are thrown
+            away after any settings save and fetched again on the next render.
+            Without this, changing the Mawaqit page appears to do nothing
+            until a reload.
+          */
+          invalidate('prayer');
+          await load('prayer').catch(() => { state.prayer = null; });
+
           closeModal();
           toast('Saved.');
           await renderRoute(window.location.pathname, { restoreScroll: true });
@@ -5536,23 +5616,43 @@ const RHYTHM_FIELDS = [
 ];
 
 /*
-  THE PRAYER TIMETABLE — the most-used form on the site, so it is the plainest
-  one on it: a box with six lines in it, each "Prayer | Begins | Jama'ah".
+  THE PRAYER TIMETABLE.
 
-  ONE BOX, NOT EIGHTEEN. Whoever updates this is doing it on the first of the
-  month with a printed timetable in their other hand, and they are typing
-  eighteen numbers. Eighteen separate input fields means eighteen clicks
-  between them; one box means typing straight down the list the way the sheet
-  is laid out. It is also the only shape that lets an extra row be added for
-  Ramadan and taken out again afterwards.
+  NOBODY TYPES THESE IN ANY MORE. The centre keeps its timetable in Mawaqit,
+  which is what drives the screen in the prayer hall, and the site reads that
+  same page — so the website and the wall cannot disagree, and a change made
+  once is made everywhere. See lib/mawaqit.js.
 
-  The times are FREE TEXT on purpose — "5.42am", "05:42" and "5:42 AM" are all
+  What is left in this form is the two things a person still decides:
+
+    1. WHICH MOSQUE. Paste any Mawaqit address — the public page, or the admin
+       page you happen to be looking at when you think of it.
+    2. WHERE TO READ FROM. "manual" switches the fetch off and uses the typed
+       rows below, which is the escape hatch for a week when Mawaqit is wrong
+       and the door is right.
+
+  The typed rows stay, as the fallback for the one case where Mawaqit has
+  never once been reachable. They are one box rather than eighteen fields
+  because somebody filling them in is copying a printed sheet straight down,
+  and eighteen fields is eighteen clicks between them.
+
+  Times typed here are FREE TEXT — "5.42am", "05:42" and "5:42 AM" are all
   accepted and all shown exactly as typed. Only the "which prayer is next"
-  highlight tries to read them, and it simply skips anything it cannot.
+  highlight tries to read them, and it skips anything it cannot.
 */
 const PRAYER_FIELDS = [
   {
-    name: 'prayer', label: 'The timetable', type: 'rows',
+    name: 'mawaqitSlug', label: 'Mawaqit page', type: 'text',
+    placeholder: 'https://mawaqit.net/en/…',
+    hint: 'The centre\u2019s page on mawaqit.net. Paste the whole address from either mawaqit.net or admin.mawaqit.net \u2014 only the last part of it is kept. Leave blank to switch Mawaqit off entirely.',
+  },
+  {
+    name: 'prayerSource', label: 'Read the times from', type: 'select',
+    options: ['mawaqit', 'manual'],
+    hint: '"mawaqit" is the live timetable and is what you want. "manual" ignores it and uses the rows below \u2014 only for when Mawaqit is wrong and you need the site right today.',
+  },
+  {
+    name: 'prayer', label: 'Fallback timetable', type: 'rows',
     columns: [
       { key: 'name',   label: 'Prayer' },
       { key: 'begins', label: 'Begins' },
@@ -5561,9 +5661,11 @@ const PRAYER_FIELDS = [
   },
 ];
 
+/* Friday, and the same story: Mawaqit supplies it, one sitting or three, and
+   these rows are only reached if it never has. */
 const JUMUAH_FIELDS = [
   {
-    name: 'jumuah', label: "Jumu'ah", type: 'rows',
+    name: 'jumuah', label: "Jumu'ah \u2014 fallback", type: 'rows',
     columns: [
       { key: 'label', label: 'What' },
       { key: 'time',  label: 'Time' },
@@ -5825,9 +5927,27 @@ function mountEditHandlers() {
     */
     prayer: () => openSettingsEditor({
       title: 'Prayer timetable',
-      subtitle: "One line per prayer: the name, when it begins, and the jama'ah — separated by a bar. Type the times however you like; they are shown exactly as typed. Sunrise has no jama'ah, so leave that one blank.",
+      subtitle: 'The times come from the centre\u2019s own Mawaqit page \u2014 the same timetable as the screen in the prayer hall \u2014 so they are not typed in here. This is which page to read, and the fallback for if it is ever unreachable.',
       fields: PRAYER_FIELDS,
     }),
+
+    /*
+      "Refresh now". The times are re-read every six hours on their own, so
+      this is only for the minute after somebody has changed something in
+      Mawaqit and wants to see it on the website before they walk away.
+    */
+    'prayer-refresh': async () => {
+      try {
+        const payload = await api.post('/api/prayer');
+        state.prayer = payload.prayer;
+        await renderRoute(window.location.pathname, { restoreScroll: true });
+        toast(payload.prayer?.stale
+          ? 'Mawaqit could not be reached \u2014 still showing the last copy.'
+          : 'Prayer times re-read from Mawaqit.', payload.prayer?.stale ? 'error' : 'ok');
+      } catch (error) {
+        toast(error.message, 'error');
+      }
+    },
 
     jumuah: () => openSettingsEditor({
       title: "Jumu'ah",
@@ -5984,6 +6104,17 @@ async function boot() {
     load('settings').catch(() => { state.settings = { contact: {}, social: {} }; }),
     load('events').catch(() => { state.events = []; }),
     load('services').catch(() => { state.services = []; }),
+    /*
+      Today's prayer times, from the centre's Mawaqit page. Fetched here
+      rather than by the page that needs them, because the hero strip on the
+      homepage shows them above the fold — waiting until that section renders
+      would mean the most important thing on the site arrives last.
+
+      A failure is not allowed to matter: the request already falls back to
+      the hand-typed timetable on the server, and if it fails outright
+      prayerRows() falls back to the same rows in the browser.
+    */
+    load('prayer').catch(() => { state.prayer = null; }),
   ]);
 
   /* Ask the server whether we are already logged in (the cookie is httpOnly,

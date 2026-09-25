@@ -2106,7 +2106,44 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 .prayer-table tbody tr[data-prayer-next='true'] td { padding-inline: 12px; }
 .prayer-table tbody tr[data-prayer-next='true'] .prayer-name { color: var(--accent-on-wash); }
 
-.prayer-edit { margin-top: var(--space-2); }
+.prayer-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--space-2);
+}
+
+/*
+  Where the times came from — one quiet line above the table, naming Mawaqit
+  and linking to the centre's page there.
+
+  It is deliberately small and deliberately present. Somebody who spots a
+  wrong time needs to know it is wrong in the mosque's Mawaqit account rather
+  than on this website, or they report it to the wrong people and it never
+  gets fixed.
+*/
+.prayer-credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-1);
+  font-size: var(--micro);
+  color: var(--ink-60);
+}
+
+/* Edit-mode only: when it was last read, or that it is a cached copy. */
+.prayer-credit-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 8px;
+  border-left: 1px solid var(--hairline);
+}
+.prayer-credit-meta .icon { width: 14px; height: 14px; }
+
+.prayer-credit--warn { color: var(--accent); }
+.prayer-credit--warn .icon { width: 15px; height: 15px; flex: none; }
 
 /* ---- Jumu'ah ---- */
 

@@ -43,28 +43,84 @@
         "alt": ""
       }
     },
-    "//prayer": "PLACEHOLDER TIMES. They are roughly right for London in the middle of the year and they are wrong today. Replace the lot on day one from the centre's own printed timetable: edit mode, Prayer timetable. Sunrise has no jama'ah, which is why that cell is blank.",
+    "//mawaqit": "The centre's own page on mawaqit.net — the same timetable that drives the screen in the prayer hall. The site reads it so nobody types the times in twice. Set prayerSource to 'manual' to switch the fetch off and use the typed rows below instead.",
+    "mawaqitSlug": "taiba-welfare-foundation-greater-london-ha8-7lg-united-kingdom",
+    "prayerSource": "mawaqit",
+    "//prayer": "THE FALLBACK, not the live timetable — Mawaqit is. These rows are what the site shows if Mawaqit has never once been reachable, and what it uses if prayerSource is set to 'manual'. Sunrise has no jama'ah, which is why that cell is blank.",
     "prayer": [
-      { "name": "Fajr", "begins": "4.20am", "jamaah": "5.00am" },
-      { "name": "Sunrise", "begins": "5.55am", "jamaah": "" },
-      { "name": "Zuhr", "begins": "1.05pm", "jamaah": "1.30pm" },
-      { "name": "Asr", "begins": "5.30pm", "jamaah": "6.15pm" },
-      { "name": "Maghrib", "begins": "8.40pm", "jamaah": "8.45pm" },
-      { "name": "Isha", "begins": "10.10pm", "jamaah": "10.30pm" }
+      {
+        "name": "Fajr",
+        "begins": "4.20am",
+        "jamaah": "5.00am"
+      },
+      {
+        "name": "Sunrise",
+        "begins": "5.55am",
+        "jamaah": ""
+      },
+      {
+        "name": "Zuhr",
+        "begins": "1.05pm",
+        "jamaah": "1.30pm"
+      },
+      {
+        "name": "Asr",
+        "begins": "5.30pm",
+        "jamaah": "6.15pm"
+      },
+      {
+        "name": "Maghrib",
+        "begins": "8.40pm",
+        "jamaah": "8.45pm"
+      },
+      {
+        "name": "Isha",
+        "begins": "10.10pm",
+        "jamaah": "10.30pm"
+      }
     ],
     "//jumuah": "The Friday times. One line per thing — a mosque with two jama'ahs adds a second line and the panel grows.",
     "jumuah": [
-      { "label": "Doors open", "time": "12.30pm" },
-      { "label": "Khutbah", "time": "1.15pm" },
-      { "label": "Jama'ah", "time": "1.40pm" }
+      {
+        "label": "Doors open",
+        "time": "12.30pm"
+      },
+      {
+        "label": "Khutbah",
+        "time": "1.15pm"
+      },
+      {
+        "label": "Jama'ah",
+        "time": "1.40pm"
+      }
     ],
     "//rhythm": "The week, shown under the service table on Services. Placeholders — change them in edit mode.",
     "rhythm": [
-      { "day": "Monday to Thursday", "time": "5.00 – 7.00pm", "detail": "Children's madrasah" },
-      { "day": "Wednesday", "time": "After Isha", "detail": "Weekly halaqah" },
-      { "day": "Friday", "time": "1.15pm", "detail": "Jumu'ah — two sittings if it is full" },
-      { "day": "Saturday", "time": "10.00am – 1.00pm", "detail": "Qur'an class for adults" },
-      { "day": "Sunday", "time": "Occasional", "detail": "Talks, open days and community work" }
+      {
+        "day": "Monday to Thursday",
+        "time": "5.00 – 7.00pm",
+        "detail": "Children's madrasah"
+      },
+      {
+        "day": "Wednesday",
+        "time": "After Isha",
+        "detail": "Weekly halaqah"
+      },
+      {
+        "day": "Friday",
+        "time": "1.15pm",
+        "detail": "Jumu'ah — two sittings if it is full"
+      },
+      {
+        "day": "Saturday",
+        "time": "10.00am – 1.00pm",
+        "detail": "Qur'an class for adults"
+      },
+      {
+        "day": "Sunday",
+        "time": "Occasional",
+        "detail": "Talks, open days and community work"
+      }
     ],
     "//donate": "Where the Donate buttons point. Paste your Stripe payment links and your LaunchGood campaign URL in edit mode. Any left blank simply is not shown on the page.",
     "donate": {

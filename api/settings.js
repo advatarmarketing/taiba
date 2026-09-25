@@ -16,6 +16,7 @@
  */
 
 import { get, set } from '../lib/kv.js';
+import { slugFrom } from '../lib/mawaqit.js';
 import { seedFor } from '../lib/seed.js';
 import {
   ok,
@@ -100,6 +101,24 @@ const MAX_RHYTHM_ROWS = 12;
 */
 const MAX_PRAYER_ROWS = 12;
 const MAX_JUMUAH_ROWS = 6;
+
+/*
+  WHERE THE TIMES COME FROM.
+
+    mawaqitSlug   the mosque's page on mawaqit.net, which is where the centre
+                  already keeps its timetable and what drives the screen in
+                  the prayer hall. Paste any Mawaqit address — the public one,
+                  or the admin one you happen to be looking at — and
+                  slugFrom() reduces it to the slug.
+
+    prayerSource  "mawaqit" (the default) or "manual". Manual switches the
+                  fetch off entirely and uses the typed rows below, which is
+                  the escape hatch for a week when Mawaqit is wrong and the
+                  door is right.
+
+  The typed rows are kept either way. They are what the site falls back to if
+  Mawaqit has never once been reachable — see api/prayer.js.
+*/
 
 /*
   DONATION LINKS.
@@ -260,8 +279,11 @@ function sanitize(input) {
 
     /*
       THE TIMETABLE. Six rows most of the year — see the note above — and the
-      Friday times beside it.
+      Friday times beside it. Both are the FALLBACK once a Mawaqit slug is
+      set; the live times come from there.
     */
+    mawaqitSlug: slugFrom(value.mawaqitSlug),
+    prayerSource: value.prayerSource === 'manual' ? 'manual' : 'mawaqit',
     prayer: cleanPrayer(value.prayer),
     jumuah: cleanJumuah(value.jumuah),
 
