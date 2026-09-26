@@ -988,15 +988,28 @@ background film can fail in more ways than most things:
 
 So it is worth setting the poster even when there is a video.
 
-The strip along the bottom is six cells, one per prayer, showing the jama'ah —
-and whichever prayer is next is underlined in gold. On a phone the six become
-one row you can flick sideways, because six cells across 360px is not enough
-room for "Maghrib" with a time under it. **With no times typed in, a visitor
-sees no strip at all** rather than six dashes, which would look like something
-failing to load.
+The strip along the bottom is **five cells, one per prayer, each showing both
+times** — when the prayer comes in, small and held back, and the jama'ah
+below it, large. There is no room to label two numbers in a fifth of a phone
+screen, so the hierarchy does it and a spelled-out line beside them does it for
+a screen reader. Whichever prayer is next is underlined in gold.
 
-**2. Welcome** — who the centre is, in two paragraphs, beside one upright
-picture cut to the arch. The picture is its own setting, not part of the hero,
+**Sunrise sits in the heading beside "Today", not in the row.** It is not a
+prayer — nothing is prayed in congregation at sunrise — so it was the one cell
+of six carrying a single time while the rest carried two, and on a phone it was
+what pushed Isha off the edge behind a sideways swipe nobody would think to
+make. Out of the row, the five real prayers fit across 375px with nothing to
+scroll.
+
+**With no times typed in, a visitor sees no strip at all** rather than a row of
+dashes, which would look like something failing to load.
+
+**2. Welcome** — who the centre is, in two paragraphs, with one picture cut to
+the arch. On a desktop the picture is upright, in the right-hand column. On a
+phone it goes **between the heading and the writing** and runs **full bleed**,
+landscape and a good deal shorter: as an upright arch inside the gutters it was
+53% of the screen with margins all round, which read as a picture parked in the
+middle of the page rather than part of anything. The picture is its own setting, not part of the hero,
 because the two want completely different photographs: the hero wants the room
 full, and this wants the front of the building. On a phone the picture goes
 first — it says where you are faster than the paragraph does.

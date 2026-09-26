@@ -90,21 +90,13 @@
   --page-scrim: rgba(251, 249, 244, 0.93);/* the header background once scrolled */
 
   /*
-    THE LOADING PANEL'S NAVY, and why it is not --brand.
+    THE LOADING PANEL'S NAVY.
 
-    The panel plays a short film of the logo drawing itself, and that film has
-    its own navy baked into every frame — #122A6B, measured off the encoded
-    file rather than the master, because H.264 does not hand back exactly what
-    went in. Painting the panel --brand instead would leave the film sitting
-    on it as a visibly lighter rectangle.
-
-    So the panel wears the film's colour. Nothing is ever on screen beside it
-    to compare it against: the panel covers the whole window and the next
-    thing anyone sees is the parchment page.
-
-    If the film is ever replaced, re-measure and change this with it.
+    The film is drawn across the whole panel, so this is only ever seen in the
+    instant before it starts and behind the still logo if it never does. It is
+    the film's own background colour so that neither moment is a jump.
   */
-  --loader-bg: #122A6B;
+  --loader-bg: #112B6B;
 
 
   /* ---- Type -------------------------------------------------------------
@@ -980,91 +972,65 @@ html[data-loading] .preloader {
 }
 
 /*
-  THE STAGE. One box, two things stacked in it: the film, and the still logo
-  that stands in when the film cannot be shown.
+  THE FILM FILLS THE WHOLE PANEL, and that is what finally made it stop
+  looking like a video in a box.
 
-  Both are laid into the same grid cell so neither can move the other, and the
-  box is sized against the viewport's HEIGHT as well as its width — on a phone
-  held sideways an unbounded square is taller than the screen it is centred in.
+  Four attempts got here. A two-gradient CSS mask (Safari composites
+  `mask-composite` differently — on an iPhone it came out hard-edged with its
+  corners clipped). `mix-blend-mode: lighten` (works, but needs the panel
+  brighter than the film in every channel, and the film's background is not
+  one colour: its margin decoded to #0E2A6A and its middle to #17315F). Then
+  matching the panel to the film exactly — and even read back through a canvas
+  as the same #112B6B, the rectangle was still faintly visible on screen,
+  because video and CSS reach the display through different colour pipelines.
+
+  The mistake in all three was trying to hide the join. There is no join now:
+  the film is encoded on a 1300px field of its own flat background with the
+  mark small in the middle, and it is drawn `cover` across the entire panel.
+  Whatever the screen's shape, every pixel behind the mark is film. Nothing is
+  composited against anything, so there is nothing to match, and no browser
+  has an opinion about it.
+
+  It is also 75KB rather than 145KB, because a field of flat colour is almost
+  free to encode.
 */
-.preloader-stage {
-  display: grid;
-  width: min(420px, 86vw, 54vh);
-  /* The film's own shape, so it fills the stage exactly. */
-  aspect-ratio: 620 / 608;
-}
-
-.preloader-stage > * { grid-area: 1 / 1; }
-
-.preloader-video,
-.preloader-logo {
+.preloader-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  /* `contain`, so neither is ever cropped: the film is already trimmed to the
-     artwork, and the still logo is a different shape again. */
-  object-fit: contain;
+  /*
+    `cover` crops, and the encode is built for it: the mark sits inside the
+    middle quarter of a square field, so the narrowest phone and the widest
+    monitor both crop into flat background long before they reach it.
+  */
+  object-fit: cover;
   transition: opacity 0.4s var(--ease-ref);
 }
 
 /*
-  THE FILM IS VISIBLE FROM THE START, AND IT HAS TO BE.
-
-  This began as the opposite: the film was opacity 0 until it started playing,
-  on the reasoning that an invisible element cannot flash. Chrome then refused
-  to play it at all —
-
-      AbortError: The play() request was interrupted because video-only
-      background media was paused to save power.
-
-  A silent video — and this one has no audio track at all — is treated as
-  background media and paused when the browser decides it is not being looked
-  at, which an opacity of 0 qualifies as. So it would not play until it was
-  shown, and it was not shown until it played.
-
-  Showing it immediately costs nothing, because the film OPENS on an empty
-  navy field: for the first few frames it is indistinguishable from the panel
-  behind it. Nothing flashes.
+  The still logo, for when the film cannot be shown. It keeps its own modest
+  size in the middle of the panel — it is artwork on transparency, so it has
+  no background to give it away.
 */
-.preloader-video { opacity: 1; }
-.preloader-logo  { opacity: 0; }
-
-/*
-  THE FILM'S EDGES ARE FADED OUT, and this is not decoration either.
-
-  Its background is not a flat colour — it is navy with a drift of faint
-  stars across it and a soft glow behind the mark. However closely the panel
-  behind it is matched, a rectangle of *texture* on a rectangle of flat colour
-  reads as a visible box, and matching it exactly is impossible by definition.
-
-  So the last tenth of the film on every side is faded to nothing and the
-  panel takes over. The film was encoded with a margin of its own background
-  padded around it for exactly this — the mark itself is nowhere near the
-  fade, so nothing of the animation is lost.
-*/
-.preloader-video {
+.preloader-stage {
   /*
-    A FIFTH of the film on each side, which is a lot, and is the point.
-
-    At 10% the join was still visible: the browser composites the decoded
-    video through its own colour pipeline, so the navy it paints is never
-    bit-identical to the navy CSS paints behind it, however carefully the
-    token is measured. A narrow fade just turns a hard edge into a narrow
-    band, which is no better.
-
-    Spread over a fifth of the box, the difference has nowhere to show. The
-    film was re-encoded with that much of its own background padded around it
-    so there is something to spend on the fade — the mark itself is nowhere
-    near it.
+    NO `position: relative` HERE. The film is absolutely positioned and is
+    meant to fill the whole panel; giving this a position makes it the film's
+    containing block instead, and the film shrinks to the size of the still
+    logo — which looked exactly like the boxed-in video this was all meant to
+    fix, only portrait.
   */
-  --fade: 20%;
-  -webkit-mask-image:
-    linear-gradient(to right,  transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent),
-    linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
-  -webkit-mask-composite: source-in;
-          mask-image:
-    linear-gradient(to right,  transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent),
-    linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
-          mask-composite: intersect;
+  display: grid;
+  place-items: center;
+  width: min(190px, 44vw, 28vh);
+}
+
+.preloader-logo {
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-ref);
 }
 
 /*
@@ -1917,8 +1883,8 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-2);
-  padding: 14px max(var(--gutter), env(safe-area-inset-left))
-           calc(14px + env(safe-area-inset-bottom))
+  padding: 12px max(var(--gutter), env(safe-area-inset-left))
+           calc(12px + env(safe-area-inset-bottom))
            max(var(--gutter), env(safe-area-inset-right));
 
   /*
@@ -1934,13 +1900,33 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
   color: var(--on-brand);
 }
 
-.hero-prayer-label {
-  color: var(--gold-soft);
+/* "Today", and sunrise beside it — see heroPrayerStrip(). */
+.hero-prayer-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
   white-space: nowrap;
 }
 
+.hero-prayer-label { color: var(--gold-soft); }
+
+.hero-prayer-sunrise {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--micro);
+  color: rgba(247, 244, 236, 0.66);
+}
+
+.hero-prayer-sunrise-time {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  color: rgba(247, 244, 236, 0.9);
+}
+
 /*
-  Six equal cells with a gold hairline between them.
+  Five equal cells with a gold hairline between them.
 
   The dividers are BORDERS on the cells, not gaps showing a background
   through. A background behind a transparent cell would sit on top of the
@@ -1957,8 +1943,8 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 .hero-prayer-cell {
   display: grid;
   justify-items: center;
-  gap: 3px;
-  padding: 6px 10px;
+  gap: 1px;
+  padding: 5px 6px;
   transition: background 0.3s var(--ease-ref), box-shadow 0.3s var(--ease-ref);
 }
 .hero-prayer-cell + .hero-prayer-cell {
@@ -1966,18 +1952,33 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 }
 
 .hero-prayer-name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: var(--weight-medium);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
-  color: rgba(247, 244, 236, 0.72);
+  color: rgba(247, 244, 236, 0.66);
+}
+
+/*
+  The two times. The adhan above, small and held back; the jama'ah below,
+  large — because the jama'ah is the number somebody is actually looking for,
+  and there is no room in a fifth of a phone screen to label either of them.
+  The hierarchy is the label. heroPrayerStrip() writes a spelled-out line
+  beside them for anyone who cannot see it.
+*/
+.hero-prayer-begins {
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.1;
+  color: rgba(247, 244, 236, 0.58);
+  white-space: nowrap;
 }
 
 .hero-prayer-time {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: var(--weight-strong);
-  line-height: 1;
+  line-height: 1.05;
   white-space: nowrap;
 }
 
@@ -1987,7 +1988,7 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
   correct timetable.
 
   The highlight is a gold underline and a lift in the text colour, not a
-  filled box: a solid gold cell in a row of six is a button, and this is not
+  filled box: a solid gold cell in a row of five is a button, and this is not
   something you can press.
 */
 .hero-prayer-cell[data-prayer-next='true'] {
@@ -2017,42 +2018,42 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 .hero-prayer--empty .tiny { color: rgba(247, 244, 236, 0.75); }
 
 /*
-  ON A PHONE the strip becomes one scrolling row.
+  ON A PHONE the strip becomes two lines and NOTHING SCROLLS.
 
-  Six cells across 360px is 60px each, which is not enough for "Maghrib" and
-  a time under it. Scrolling sideways is the honest answer: every prayer is
-  still there, the first three are visible, and the rest are one thumb-flick
-  away. The label and the link move above and below it.
+  It used to be one line of six cells that ran off the edge, so Isha was
+  behind a swipe that nobody would think to make. Sunrise moving up into the
+  heading is what bought the room: five cells across 375px is 75px each, which
+  is enough for a name and two times once the type steps down.
 */
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .hero-prayer {
     grid-template-columns: 1fr auto;
-    gap: 10px var(--space-1);
-    padding-inline: 0;
-  }
-  .hero-prayer-label { padding-left: var(--gutter); }
-
-  /*
-    Placed explicitly. Auto-placement puts it after the row of cells — which
-    is row THREE, at the left-hand edge, under a timetable it is supposed to
-    sit opposite. It belongs on the first line, at the other end from "Today".
-  */
-  .hero-prayer-all {
-    grid-row: 1;
-    grid-column: 2;
-    justify-self: end;
-    padding-right: var(--gutter);
+    gap: 8px var(--space-1);
+    padding-inline: max(12px, env(safe-area-inset-left))
+                    max(12px, env(safe-area-inset-right));
   }
 
+  /* Row one: "Today · Sunrise" at one end, the link at the other. */
+  .hero-prayer-head { grid-row: 1; grid-column: 1; }
+  .hero-prayer-all  { grid-row: 1; grid-column: 2; justify-self: end; }
+
+  /* Row two: the five prayers, the full width, no scrolling. */
   .hero-prayer-row {
     grid-row: 2;
     grid-column: 1 / -1;
-    grid-auto-columns: minmax(84px, 1fr);
-    overflow-x: auto;
-    /* The row is scrolled, so the scrollbar must not be a visible line. */
-    scrollbar-width: none;
   }
-  .hero-prayer-row::-webkit-scrollbar { display: none; }
+
+  .hero-prayer-cell   { padding-inline: 2px; }
+  .hero-prayer-name   { font-size: 9px; letter-spacing: 0.08em; }
+  .hero-prayer-begins { font-size: 11px; }
+  .hero-prayer-time   { font-size: 17px; }
+}
+
+/* Narrower still: the names are the first thing that can go without losing
+   meaning, because the order never changes. They stay for screen readers. */
+@media (max-width: 360px) {
+  .hero-prayer-time   { font-size: 15px; }
+  .hero-prayer-begins { font-size: 10px; }
 }
 
 /* The scroll cue, bottom right. The line underneath slides down and away on a
@@ -2113,24 +2114,40 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
    arch — the same shape as the service tiles and the outline in the hero.
    ------------------------------------------------------------------------ */
 
+/*
+  Three parts — the heading, the picture and the writing — so that a phone can
+  put the picture BETWEEN the first two rather than stacking it on top of
+  everything. On a desktop the heading and the writing share the left column
+  and the picture takes the right.
+*/
 .welcome {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: var(--space-4);
-  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+}
+
+.welcome-intro { grid-column: 1; grid-row: 1; }
+.welcome-text  { grid-column: 1; grid-row: 2; }
+
+.welcome-media {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
 }
 
 .welcome-lede {
-  margin-top: var(--space-2);
   /* The opening paragraph is set a step up from body copy: it is the first
      thing anybody reads on the page after the hero. */
   font-size: clamp(1.05rem, 1.3vw, 1.2rem);
 }
 
-.welcome-body > .prose + .prose { margin-top: var(--space-2); }
+.welcome-text > .prose + .prose { margin-top: var(--space-2); }
 .welcome-actions { margin-top: var(--space-3); }
 
 .welcome-arch {
+  /* Upright beside the writing; turned on its side on a phone, below. */
+  --welcome-ratio: 4 / 5;
   /* The arch is on the WRAPPER, never on the picture: a radius on the <img>
      leaves the frame behind it square and the join shows. */
   background: var(--sand);
@@ -2138,13 +2155,40 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 .welcome-arch .media { border-radius: inherit; }
 
 @media (max-width: 900px) {
-  .welcome { grid-template-columns: 1fr; gap: var(--space-3); }
-  /* Picture first on a phone — it is the front of the building, and it says
-     where you are faster than the paragraph does. */
-  .welcome-media { order: -1; }
-  .welcome-arch { max-width: 420px; }
-}
+  /*
+    One column, and the picture goes in the middle: heading, picture, writing.
+  */
+  .welcome { grid-template-columns: 1fr; row-gap: var(--space-2); }
+  .welcome-intro { grid-column: 1; grid-row: 1; }
+  .welcome-media { grid-column: 1; grid-row: 2; }
+  .welcome-text  { grid-column: 1; grid-row: 3; margin-top: var(--space-1); }
 
+  /*
+    FULL BLEED. The shell's gutter is cancelled with a negative margin so the
+    band runs to both edges of the screen — which is what stops it reading as
+    a picture parked in the middle of the page.
+
+    The same max() as .shell uses, so it lines up with the padding it is
+    undoing on a notched phone as well as an ordinary one.
+  */
+  .welcome-media {
+    margin-inline: calc(-1 * max(var(--gutter), env(safe-area-inset-left)))
+                   calc(-1 * max(var(--gutter), env(safe-area-inset-right)));
+  }
+
+  .welcome-arch {
+    /* Landscape, and a good deal shorter: upright it was over half the height
+       of the screen on its own. */
+    --welcome-ratio: 5 / 4;
+    /* A wide band wants the flattened arch; the tall one on a landscape box
+       is a semicircle with a rectangle under it. */
+    border-radius: var(--arch-soft);
+  }
+
+  /* The edit chip is inside the full-bleed block, so it needs the gutter put
+     back or it sits against the edge of the screen. */
+  .welcome-media .edit-chip { margin-left: var(--gutter); }
+}
 
 /* ---- 1c. Prayer times ---------------------------------------------------
 

@@ -472,8 +472,8 @@ const SOCIAL_LINKS = [
   what stops the header jumping as it loads. If the artwork is replaced,
   scripts/make-logos.py prints the new numbers.
 */
-const MARK_LIGHT = '/assets/mark-light.png?v=c8e525f0';
-const MARK_DARK = '/assets/mark-dark.png?v=c8e525f0';
+const MARK_LIGHT = '/assets/mark-light.png?v=02056ef8';
+const MARK_DARK = '/assets/mark-dark.png?v=02056ef8';
 
 const brandMark = (variant = 'dark') => `
   <span class="brand-lockup">
@@ -1236,13 +1236,13 @@ function heroSection(settings) {
   timetable with no highlight on it.
 */
 function heroPrayerStrip(settings) {
-  const rows = prayerRows(settings).slice(0, 6);
+  const rows = prayerRows(settings);
 
   if (!hasPrayerTimes(rows)) {
     /*
-      No times typed in yet. A visitor gets NOTHING — an empty strip of six
-      dashes across the hero is worse than a hero with no strip on it, because
-      it looks like the times failed to load rather than like a site that is
+      No times typed in yet. A visitor gets NOTHING — an empty strip of dashes
+      across the hero is worse than a hero with no strip on it, because it
+      looks like the times failed to load rather than like a site that is
       still being filled in. In edit mode it is there, with a way in.
     */
     return editOnly(`
@@ -1252,27 +1252,63 @@ function heroPrayerStrip(settings) {
       </div>`);
   }
 
+  /*
+    SUNRISE COMES OUT OF THE ROW AND SITS BESIDE "TODAY".
+
+    It is not a prayer — nothing is prayed in congregation at sunrise — so it
+    was the one cell of six carrying a single time while the rest carried two,
+    and on a phone it was the cell that pushed Isha off the edge of the screen.
+    Moving it into the heading buys back a fifth of the width, which is exactly
+    what the five real prayers need to fit without anybody swiping.
+  */
+  const sunrise = rows.find((row) => NO_JAMAAH.has(row.name.toLowerCase()));
+  const prayers = rows.filter((row) => !NO_JAMAAH.has(row.name.toLowerCase())).slice(0, 5);
+
+  /*
+    Both times, every cell: when the prayer comes in, and when it is prayed
+    together. The second is the one people are looking for, so it is the one
+    set large — the first is above it, smaller and held back, which is the
+    whole labelling system. There is no room for the words "begins" and
+    "jama'ah" in 75px, so the hierarchy says it and the hidden line spells it
+    out for anyone who cannot see the hierarchy.
+  */
   const cell = (row) => {
-    const quiet = NO_JAMAAH.has(row.name.toLowerCase());
-    const time = (quiet ? row.begins : row.jamaah) || row.begins || row.jamaah;
+    const begins = row.begins || '';
+    const jamaah = row.jamaah || row.begins || '—';
+
     return `
       <div class="hero-prayer-cell" data-prayer-cell data-prayer-name="${esc(row.name)}"
-           data-prayer-quiet="${quiet ? 'true' : 'false'}"
-           data-prayer-minutes="${parseClock(quiet ? row.begins : (row.jamaah || row.begins)) ?? ''}">
+           data-prayer-minutes="${parseClock(row.jamaah || row.begins) ?? ''}">
         <span class="hero-prayer-name">${esc(row.name)}</span>
-        <span class="hero-prayer-time">${esc(time || '—')}</span>
+        ${begins && row.jamaah
+          ? `<span class="hero-prayer-begins">${esc(begins)}</span>`
+          : '<span class="hero-prayer-begins" aria-hidden="true">&nbsp;</span>'}
+        <span class="hero-prayer-time">${esc(jamaah)}</span>
+        <span class="visually-hidden">${esc(row.name)}${
+          begins && row.jamaah ? ` begins ${esc(begins)}, congregation ${esc(jamaah)}` : ` ${esc(jamaah)}`
+        }</span>
       </div>`;
   };
 
   return `
     <div class="hero-prayer" data-prayer-strip>
-      <p class="label hero-prayer-label" data-copy="home.prayer.today">Today</p>
-      <div class="hero-prayer-row">${rows.map(cell).join('')}</div>
+      <div class="hero-prayer-head">
+        <p class="label hero-prayer-label" data-copy="home.prayer.today">Today</p>
+        ${sunrise?.begins ? `
+        <p class="hero-prayer-sunrise">
+          <span data-copy="home.prayer.sunrise">Sunrise</span>
+          <span class="hero-prayer-sunrise-time">${esc(sunrise.begins)}</span>
+        </p>` : ''}
+      </div>
+
+      <div class="hero-prayer-row">${prayers.map(cell).join('')}</div>
+
       <a class="hero-prayer-all" href="/prayer-times">
         <span data-copy="home.prayer.all">Full timetable</span>${icon('arrowRight')}
       </a>
     </div>`;
 }
+
 
 /**
  * THE TABLE ITSELF, used on the homepage and again on /prayer-times.
@@ -1802,7 +1838,7 @@ function welcomeSection(settings) {
 
   return `
   <section class="section shell welcome">
-    <div class="welcome-body">
+    <div class="welcome-intro">
       <p class="label" data-reveal="text" data-copy="home.welcome.label">Assalamu alaikum</p>
 
       <h2 class="display-2" data-reveal="text" data-copy="home.welcome.title">
@@ -1810,7 +1846,34 @@ function welcomeSection(settings) {
       </h2>
 
       <hr class="rule" data-reveal="text">
+    </div>
 
+    <!--
+      Between the heading and the writing, not stacked on top of both.
+
+      On a phone this is a full-bleed band: it runs edge to edge and is landscape
+      rather than upright. As an upright arch inside the gutters it was 53% of the
+      screen with margins all round — a picture sitting on its own in the middle of
+      the page rather than part of anything. Sitting between the heading and the
+      paragraphs, at the full width, it reads as the section opening instead.
+    -->
+    <div class="welcome-media" data-reveal>
+      <div class="arch welcome-arch">
+        ${mediaSlot({
+          url: welcome.imageUrl,
+          label: 'Add a picture of the centre',
+          /* A token, not a literal, so the phone rule can turn it on its side —
+             an inline aspect-ratio cannot be overridden from the stylesheet. */
+          ratio: 'var(--welcome-ratio)',
+          alt: welcome.alt ?? '',
+        })}
+      </div>
+      ${editOnly(`<div style="margin-top:var(--space-1)">
+        <button type="button" class="edit-chip" data-edit="welcome">${icon('pencil')} Welcome picture</button>
+      </div>`)}
+    </div>
+
+    <div class="welcome-text">
       <p class="prose welcome-lede" data-reveal="text" data-copy="home.welcome.lede">
         Taiba Islamic Centre is a mosque and a community centre. We are open for the
         five daily prayers and for Jumu&#39;ah, we teach the Qur&#39;an to children and
@@ -1829,20 +1892,6 @@ function welcomeSection(settings) {
           <span data-copy="home.welcome.link">More about the centre</span>${icon('arrowRight')}
         </a>
       </p>
-    </div>
-
-    <div class="welcome-media" data-reveal>
-      <div class="arch welcome-arch">
-        ${mediaSlot({
-          url: welcome.imageUrl,
-          label: 'Add a picture of the centre',
-          ratio: '4 / 5',
-          alt: welcome.alt ?? '',
-        })}
-      </div>
-      ${editOnly(`<div style="margin-top:var(--space-1)">
-        <button type="button" class="edit-chip" data-edit="welcome">${icon('pencil')} Welcome picture</button>
-      </div>`)}
     </div>
   </section>`;
 }
