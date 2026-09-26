@@ -328,16 +328,21 @@ def stamp_references():
     the artwork does. Rebuilding identical files rewrites nothing, and a
     rebuild that changes a single pixel busts every cache holding it.
     """
-    names = ['mark-dark', 'mark-light', 'logo-dark', 'logo-light']
+    # Everything under /assets/ that the site links to. The film is not built
+    # by this script, but it lives under the same week-long cache and needs
+    # busting for the same reason — so it is stamped with the rest.
+    files = ['mark-dark.png', 'mark-light.png', 'logo-dark.png', 'logo-light.png', 'loader.mp4']
+    files = [name for name in files if os.path.exists(f'assets/{name}')]
 
     digest = hashlib.sha1()
-    for name in names:
-        with open(f'assets/{name}.png', 'rb') as handle:
+    for name in files:
+        with open(f'assets/{name}', 'rb') as handle:
             digest.update(handle.read())
     stamp = digest.hexdigest()[:8]
 
-    # /assets/<one of ours>.png, with or without a stamp already on it.
-    pattern = re.compile(r'(/assets/(?:' + '|'.join(names) + r')\.png)(?:\?v=[0-9a-f]+)?')
+    # /assets/<one of ours>, with or without a stamp already on it.
+    pattern = re.compile(
+        r'(/assets/(?:' + '|'.join(re.escape(name) for name in files) + r'))(?:\?v=[0-9a-f]+)?')
 
     for path in ('index.html', 'app.js'):
         with open(path, encoding='utf-8') as handle:

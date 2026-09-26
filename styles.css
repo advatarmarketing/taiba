@@ -89,6 +89,23 @@
   --hairline:   rgba(16, 20, 28, 0.13);   /* rules and borders */
   --page-scrim: rgba(251, 249, 244, 0.93);/* the header background once scrolled */
 
+  /*
+    THE LOADING PANEL'S NAVY, and why it is not --brand.
+
+    The panel plays a short film of the logo drawing itself, and that film has
+    its own navy baked into every frame — #122A6B, measured off the encoded
+    file rather than the master, because H.264 does not hand back exactly what
+    went in. Painting the panel --brand instead would leave the film sitting
+    on it as a visibly lighter rectangle.
+
+    So the panel wears the film's colour. Nothing is ever on screen beside it
+    to compare it against: the panel covers the whole window and the next
+    thing anyone sees is the parchment page.
+
+    If the film is ever replaced, re-measure and change this with it.
+  */
+  --loader-bg: #122A6B;
+
 
   /* ---- Type -------------------------------------------------------------
 
@@ -943,7 +960,7 @@ body[data-menu='open'] { overflow: hidden; }
   z-index: var(--z-preloader);
   display: grid;
   place-items: center;
-  background: var(--brand);
+  background: var(--loader-bg);
 
   /* The resting state IS "gone" — so if the attribute is never set, the panel
      is already out of the way and nothing has to run for the site to work. */
@@ -962,15 +979,114 @@ html[data-loading] .preloader {
     visibility 0s linear 0s;
 }
 
-.preloader-logo {
-  /* The complete stacked logo — arch, name and rule — is UPRIGHT, roughly
-     4:7. Sized by its width, that makes it a tall block, so the width is kept
-     modest and the height is what fills the panel. It is also capped against
-     the viewport HEIGHT, or on a phone held sideways the logo is taller than
-     the screen it is centred in. */
-  width: min(200px, 44vw, 30vh);
-  height: auto;
+/*
+  THE STAGE. One box, two things stacked in it: the film, and the still logo
+  that stands in when the film cannot be shown.
+
+  Both are laid into the same grid cell so neither can move the other, and the
+  box is sized against the viewport's HEIGHT as well as its width — on a phone
+  held sideways an unbounded square is taller than the screen it is centred in.
+*/
+.preloader-stage {
+  display: grid;
+  width: min(420px, 86vw, 54vh);
+  /* The film's own shape, so it fills the stage exactly. */
+  aspect-ratio: 620 / 608;
 }
+
+.preloader-stage > * { grid-area: 1 / 1; }
+
+.preloader-video,
+.preloader-logo {
+  width: 100%;
+  height: 100%;
+  /* `contain`, so neither is ever cropped: the film is already trimmed to the
+     artwork, and the still logo is a different shape again. */
+  object-fit: contain;
+  transition: opacity 0.4s var(--ease-ref);
+}
+
+/*
+  THE FILM IS VISIBLE FROM THE START, AND IT HAS TO BE.
+
+  This began as the opposite: the film was opacity 0 until it started playing,
+  on the reasoning that an invisible element cannot flash. Chrome then refused
+  to play it at all —
+
+      AbortError: The play() request was interrupted because video-only
+      background media was paused to save power.
+
+  A silent video — and this one has no audio track at all — is treated as
+  background media and paused when the browser decides it is not being looked
+  at, which an opacity of 0 qualifies as. So it would not play until it was
+  shown, and it was not shown until it played.
+
+  Showing it immediately costs nothing, because the film OPENS on an empty
+  navy field: for the first few frames it is indistinguishable from the panel
+  behind it. Nothing flashes.
+*/
+.preloader-video { opacity: 1; }
+.preloader-logo  { opacity: 0; }
+
+/*
+  THE FILM'S EDGES ARE FADED OUT, and this is not decoration either.
+
+  Its background is not a flat colour — it is navy with a drift of faint
+  stars across it and a soft glow behind the mark. However closely the panel
+  behind it is matched, a rectangle of *texture* on a rectangle of flat colour
+  reads as a visible box, and matching it exactly is impossible by definition.
+
+  So the last tenth of the film on every side is faded to nothing and the
+  panel takes over. The film was encoded with a margin of its own background
+  padded around it for exactly this — the mark itself is nowhere near the
+  fade, so nothing of the animation is lost.
+*/
+.preloader-video {
+  /*
+    A FIFTH of the film on each side, which is a lot, and is the point.
+
+    At 10% the join was still visible: the browser composites the decoded
+    video through its own colour pipeline, so the navy it paints is never
+    bit-identical to the navy CSS paints behind it, however carefully the
+    token is measured. A narrow fade just turns a hard edge into a narrow
+    band, which is no better.
+
+    Spread over a fifth of the box, the difference has nowhere to show. The
+    film was re-encoded with that much of its own background padded around it
+    so there is something to spend on the fade — the mark itself is nowhere
+    near it.
+  */
+  --fade: 20%;
+  -webkit-mask-image:
+    linear-gradient(to right,  transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent),
+    linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+  -webkit-mask-composite: source-in;
+          mask-image:
+    linear-gradient(to right,  transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent),
+    linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+          mask-composite: intersect;
+}
+
+/*
+  THE SWAP, when there is no film to show.
+
+  app.js sets data-film="still" if the film errors, is refused, or is not
+  playable in time — see mountLoaderFilm(). There is no "playing" state to
+  set, because playing is simply what happens when nothing has gone wrong.
+*/
+.preloader[data-film='still'] .preloader-video { opacity: 0; }
+.preloader[data-film='still'] .preloader-logo  { opacity: 1; }
+
+/*
+  And the same again without JavaScript, which would otherwise leave the panel
+  showing a film that never starts. If app.js has not taken the panel down
+  within a few seconds it is not going to, so the still logo appears and the
+  8-second failsafe in index.html lifts the panel over it.
+*/
+.preloader:not([data-film]) .preloader-logo {
+  animation: loader-fallback 0s linear 3.6s forwards;
+}
+@keyframes loader-fallback { to { opacity: 1; } }
 
 /* Nothing scrolls while the panel is up. */
 html[data-loading] body { overflow: hidden; }

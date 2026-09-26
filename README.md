@@ -877,9 +877,9 @@ to fill rather than the row just being short.
 
 ### The preloader
 
-A full-screen panel in `--brand` with the logo centred, which covers the page
-on a first visit to the homepage and then slides up and away on the same 0.6s
-curve as the menu.
+A full-screen navy panel that covers the page on a first visit to the homepage,
+plays **a three-second film of the logo drawing itself**, and then slides up
+and away on the same 0.6s curve as the menu.
 
 It is switched on by a tiny script in `index.html` that runs *before the
 browser paints anything*. That matters: if it waited for `app.js` you would see
@@ -894,6 +894,64 @@ looks worse than no loading screen at all.
   it on a timer as well as on an animation frame, since a browser stops handing
   out animation frames to a background tab. And if `app.js` never runs at all,
   the inline script removes it after 8 seconds regardless.
+
+#### The two clocks
+
+How long the site takes to be ready and how long the film takes to run have
+nothing to do with each other, so they **run at the same time**. Somebody whose
+connection took two seconds to build the page does not then wait three more for
+a logo — whichever finishes last releases the panel. Measured on a warm load:
+the film ran its full 3.04s and the panel lifted at 3.4s.
+
+Both numbers in `app.js` are budgets rather than intentions:
+
+| | |
+|---|---|
+| `FILM_START_BY_MS` (900ms) | how long the film gets to become playable. Past that it is abandoned and the still logo takes over, because holding a ready site behind a decoration is worse than not showing it |
+| `FILM_CAP_MS` (4.2s) | the ceiling on the panel whatever happens, only reached if playback stalls part-way |
+
+#### Three things about the film that are not obvious
+
+**It has a silent audio track**, deliberately. Chrome treats a video with no
+audio stream as "background media" and pauses it to save power when it decides
+nobody is watching. The track is literal silence and costs about 2KB.
+
+**Nothing calls `play()` early.** The `<video>` carries `autoplay` and the
+browser starts it when it has enough data. Calling `play()` as well, a few
+milliseconds into the load, races that and loses —
+*"AbortError: the play() request was interrupted because video-only background
+media was paused to save power"* — because at 7ms `readyState` is 1 and there
+is nothing to play yet. `app.js` waits until the deadline and only nudges it if
+autoplay has not started by then.
+
+**It is visible from the start.** It was briefly `opacity: 0` until playback
+began, which deadlocked for the same reason: an invisible video is background
+media, so it would not play until it was shown and was not shown until it
+played. Showing it immediately costs nothing — the film opens on an empty navy
+field, indistinguishable from the panel behind it.
+
+#### Replacing the film
+
+`assets/loader.mp4`, 145KB, 620x608, 3.04s. It was cut from a 10-second
+original with:
+
+```bash
+ffmpeg -ss 0 -t 6.5 -i original.mp4 -f lavfi -i anullsrc=channel_layout=mono:sample_rate=22050 \
+  -vf "crop=760:720:338:0,pad=1080:1060:160:170:0x112B6B,setpts=PTS/2.2,scale=620:-2:flags=lanczos" \
+  -map 0:v -map 1:a -shortest -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 27 \
+  -c:a aac -b:a 12k -ac 1 -movflags +faststart -r 24 assets/loader.mp4
+```
+
+The last three seconds of the original were a static shimmer, so it is trimmed
+rather than simply sped up — that spends the budget on the part that moves.
+`pad` adds a wide margin of the film's own background, which exists purely for
+the edge fade to eat: the browser composites video through its own colour
+pipeline, so the navy it paints is never bit-identical to the navy CSS paints
+behind it, and a 20% fade is what makes the join disappear. If you change the
+film's shape, update `aspect-ratio` on `.preloader-stage`; if you change its
+background, re-measure `--loader-bg`.
+
+Then run `npm run logos` to re-stamp the cache-busting `?v=`.
 
 ### When an address isn't a page
 

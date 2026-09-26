@@ -102,8 +102,18 @@
   })();
 </script>
 
-<!-- The preloader shows this, so it must not be fetched a moment too late. -->
-<link rel="preload" as="image" href="/assets/logo-light.png?v=e64eafe3">
+<!--
+  The still logo behind the loading film: the fallback if the film cannot be
+  shown, and the same file the footer draws on every page.
+
+  THE FILM ITSELF IS NOT PRELOADED HERE, and not for want of trying. There is
+  no `as="video"`: the preload spec has no such value, and Chrome answers a
+  <link rel=preload as=video> with "unsupported `as` value" and ignores it.
+  The <video> in the body carries preload="auto" instead, and because it sits
+  near the top of the document the parser reaches it almost immediately — so
+  it starts fetching within a few milliseconds of this line anyway.
+-->
+<link rel="preload" as="image" href="/assets/logo-light.png?v=c8e525f0">
 </head>
 <body>
 
@@ -114,10 +124,28 @@
   The preloader itself. It is in the markup rather than built by app.js for the
   same reason the script above is inline — it has to exist before anything
   else does. CSS shows it only while <html data-loading> is set; app.js takes
-  that attribute off when the first page is ready, and it slides up and away.
+  that attribute off once the first page is ready AND the film has run, and it
+  slides up and away.
 -->
 <div class="preloader" aria-hidden="true">
-  <img class="preloader-logo" src="/assets/logo-light.png?v=e64eafe3" alt="" width="838" height="1392" decoding="async">
+  <div class="preloader-stage">
+    <!--
+      muted and playsinline are what let this play at all without somebody
+      pressing something — without both, a phone refuses and the panel sits
+      on a black rectangle. It is silent by nature: the file has no audio
+      track in it to mute.
+
+      No `loop`: it runs once and the panel lifts. No `controls`, no `poster` —
+      the still logo underneath is the poster, and it is the brand mark rather
+      than a frame of video.
+    -->
+    <video class="preloader-video" src="/assets/loader.mp4?v=c8e525f0" muted playsinline
+           autoplay preload="auto" disablepictureinpicture
+           width="560" height="530"></video>
+
+    <img class="preloader-logo" src="/assets/logo-light.png?v=c8e525f0" alt=""
+         width="838" height="1392" decoding="async">
+  </div>
 </div>
 
 <!--

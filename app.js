@@ -472,8 +472,8 @@ const SOCIAL_LINKS = [
   what stops the header jumping as it loads. If the artwork is replaced,
   scripts/make-logos.py prints the new numbers.
 */
-const MARK_LIGHT = '/assets/mark-light.png?v=e64eafe3';
-const MARK_DARK = '/assets/mark-dark.png?v=e64eafe3';
+const MARK_LIGHT = '/assets/mark-light.png?v=c8e525f0';
+const MARK_DARK = '/assets/mark-dark.png?v=c8e525f0';
 
 const brandMark = (variant = 'dark') => `
   <span class="brand-lockup">
@@ -3912,14 +3912,163 @@ function mountMenu() {
   the site must never bring it back. If something above threw and the page
   never rendered, the safety timer in index.html removes it anyway.
 */
-function dismissPreloader() {
+/* ---------------------------------------------------- The loading film --- */
+
+/*
+  THE PANEL PLAYS A 3-SECOND FILM of the logo drawing itself, and then lifts.
+
+  Two clocks have to be reconciled here and they have nothing to do with each
+  other: how long the site takes to be ready, and how long the film takes to
+  run. They RUN AT THE SAME TIME rather than one after the other — a visitor
+  whose connection took two seconds to build the page does not then wait three
+  more for a logo. Whichever finishes last releases the panel.
+
+  The numbers below are both budgets, not intentions.
+*/
+
+/* When the panel went up: as good as page-load, since this module is the
+   first thing that runs after the parser reaches it. */
+const FILM_STARTED = Date.now();
+
+/*
+  How long the film gets to become playable before it is abandoned.
+
+  The file is 187KB, so on any ordinary connection it is ready in a fraction
+  of this. The point of the limit is the connection that is NOT ordinary: past
+  this, showing the film would mean holding an otherwise-ready site behind a
+  decoration, so the still logo takes over and the panel gets on with it.
+*/
+const FILM_START_BY_MS = 900;
+
+/*
+  The absolute ceiling on the panel, whatever happens after that. The film
+  runs 3.05s, so this is only ever reached if playback stalls part-way — in
+  which case the panel lifts mid-animation, which is the right way round.
+*/
+const FILM_CAP_MS = 4200;
+
+/*
+  Resolves when the film has had its turn — played out, failed, or run out of
+  budget. A page with no panel never touches this, so it starts already done
+  and dismissPreloader() waits on nothing.
+*/
+let filmFinished = Promise.resolve();
+
+/* Set by mountLoaderFilm, called by lift(). A no-op until there is a film. */
+let stopFilm = () => {};
+
+function mountLoaderFilm() {
+  const root = document.documentElement;
+  if (!root.hasAttribute('data-loading')) return;
+
+  const panel = $('.preloader');
+  const film = $('.preloader-video', panel ?? document);
+  if (!panel || !film) return;
+
+  filmFinished = new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(cap);
+      clearTimeout(startBy);
+      resolve();
+    };
+
+    /*
+      Give up on the film and show the still logo instead.
+
+      Only ever called before the film has actually run — once it is playing,
+      the paths that call this cannot fire. Swapping to a still logo part-way
+      through an animation would be worse than either outcome on its own.
+    */
+    const fallBackToStill = () => { panel.dataset.film = 'still'; };
+
+    const cap = setTimeout(finish, FILM_CAP_MS - (Date.now() - FILM_STARTED));
+
+    /*
+      THE DEADLINE, and the one nudge.
+
+      NOTHING CALLS play() BEFORE THIS POINT, and that is the whole trick. The
+      element carries `autoplay`, so the browser starts it by itself the
+      moment it has enough data — and calling play() as well, a few
+      milliseconds into the load, races that and loses:
+
+          AbortError: The play() request was interrupted because video-only
+          background media was paused to save power.
+
+      Seven milliseconds in, readyState was 1 — metadata and nothing more. The
+      browser had not decided to start yet, the speculative play() was thrown
+      out as a request to play something with no data behind it, and the catch
+      fell straight through to the still logo. Every single load.
+
+      So autoplay is left to do its job, and this runs once, later, only if it
+      has not. By then the film has had its chance to buffer, so a play() here
+      is a considered request rather than a race.
+    */
+    const startBy = setTimeout(() => {
+      if (!film.paused) return;              // autoplay got there on its own
+
+      /* readyState 3 is HAVE_FUTURE_DATA — enough decoded to start and keep
+         going. Anything less and it would stutter, which is worse than not
+         playing it at all. */
+      if (film.readyState < 3) { fallBackToStill(); finish(); return; }
+
+      /* Buffered, but still not started: autoplay was declined. Ask once. */
+      film.play().catch(() => { fallBackToStill(); finish(); });
+    }, Math.max(0, FILM_START_BY_MS - (Date.now() - FILM_STARTED)));
+
+    /* It may have started, or even finished, before this module ran at all. */
+    if (film.ended) { finish(); return; }
+
+    film.addEventListener('ended', finish, { once: true });
+    film.addEventListener('error', () => { fallBackToStill(); finish(); }, { once: true });
+
+    /*
+      Paused part-way through, by something other than us.
+
+      A browser will stop a silent video it has decided nobody is watching —
+      switch tabs mid-load and Chrome pauses it to save power. Waiting out the
+      cap in that case would hold a finished site behind a frozen frame for
+      seconds, for somebody who is not even looking at it.
+
+      A stall while buffering does NOT come through here; that fires `waiting`.
+      This only runs on a real pause, at which point the animation is over as
+      far as the panel is concerned.
+    */
+    film.addEventListener('pause', () => { if (!film.ended) finish(); }, { once: true });
+  });
+
+  /*
+    Stopping it is dismissPreloader's job, not registerCleanup's.
+
+    registerCleanup is for things the CURRENT PAGE owns, and it is emptied at
+    the top of every renderRoute — including the very first one, which happens
+    while this film is still playing. Registering here would have paused the
+    film a few hundred milliseconds in, every single time.
+
+    The film belongs to the page load, and the page load ends when the panel
+    lifts. See lift() below.
+  */
+  stopFilm = () => { try { film.pause(); } catch { /* already gone */ } };
+}
+
+
+async function dismissPreloader() {
   if (!document.documentElement.hasAttribute('data-loading')) return;
+
+  /* The site is ready. Wait for the film to have had its turn — usually it
+     already has, because both clocks have been running since page load. */
+  await filmFinished;
 
   let lifted = false;
   const lift = () => {
     if (lifted) return;
     lifted = true;
     document.documentElement.removeAttribute('data-loading');
+    /* The panel is on its way out and the film is behind it. Whatever state
+       it is in, it is finished being looked at. */
+    stopFilm();
   };
 
   /*
@@ -6094,7 +6243,15 @@ function openCopyOverrides() {
 
 async function boot() {
   /*
-    The motion foundation goes up first, before anything is drawn: GSAP is
+    THE FILM FIRST, before a single await. Everything below this line waits on
+    the network, and the film's whole budget is the few hundred milliseconds
+    those requests are in flight — wiring it up afterwards would spend the
+    budget before it started.
+  */
+  mountLoaderFilm();
+
+  /*
+    The motion foundation goes up next, before anything is drawn: GSAP is
     registered, Lenis takes over scrolling, and the cursor appears — each only
     if the device and the visitor's settings allow it.
   */
