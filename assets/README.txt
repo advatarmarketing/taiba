@@ -30,15 +30,22 @@ It uses mark-dark.png (or mark-light.png over a dark hero) and then sets
 "TAIBA / ISLAMIC CENTRE" as LIVE TEXT beside it, in the same serif as the
 headings. See brandMark() in app.js.
 
-The supplied artwork is 627px wide, which leaves "ISLAMIC CENTRE" about 14px
-tall. That is plenty for the stacked logo on the loading panel, and nowhere
-near enough for crisp lettering in a 36px header on a retina screen — a
-picture of it is soft at every size that matters. Live text is sharp, scales
-with the layout, can be selected, and is read by a search engine as the name
-of the organisation.
+This started as a resolution argument — the first artwork was 627px wide, which
+left "ISLAMIC CENTRE" about 14px tall and far too soft to use in a header. The
+current artwork is 1524px and has the pixels, so that reason has gone. The
+others have not, and they are the ones that mattered anyway:
 
-The loading panel and the footer still use the complete stacked file, because
-both draw it large enough for the supplied resolution to hold up.
+  * Type is sharp at EVERY size, on every screen, forever. A picture is sharp
+    at the sizes somebody thought about.
+  * It scales with the layout. The lockup drops its second line under 420px
+    wide, which is a CSS rule rather than a second file.
+  * A search engine reads "Taiba Islamic Centre" as the name of the
+    organisation, rather than looking at a rectangle with alt text on it.
+  * It can be selected and copied, which is how people put an address into a
+    message.
+
+The loading panel and the footer use the complete stacked file, because both
+draw it large enough for a picture to be the right answer.
 
 
 IF YOU REPLACE THE ARTWORK

@@ -635,31 +635,31 @@ palette was invented beside them.
 
 | Token | Value | For |
 |---|---|---|
-| `--brand` | `#0A2C6C` | **Large fills** — the donate band, the footer, the menu, the loading panel, a wash over a photo |
-| `--gold` | `#B5812A` | **Decoration at size** — hairlines, the arch outline, an icon, a rule under a heading |
-| `--accent` | `#96661A` | **Small text** — the uppercase labels, link text, the "When" column |
-| `--gold-soft` | `#E2C185` | Gold that has to work **on navy** |
+| `--brand` | `#032A74` | **Large fills** — the donate band, the footer, the menu, the loading panel, a wash over a photo |
+| `--gold` | `#C38209` | **Decoration at size** — hairlines, the arch outline, an icon, a rule under a heading |
+| `--accent` | `#96660D` | **Small text** — the uppercase labels, link text, the "When" column |
+| `--gold-soft` | `#E9C67E` | Gold that has to work **on navy** |
 | `--page` | `#FBF9F4` | The page itself — warm parchment, not white |
-| `--sand` | `#F3EDE1` | A panel that steps forward from the page |
+| `--sand` | `#F4EBD8` | A panel that steps forward — the gold at 12% over the page |
 | `--ink` | `#10141C` | All body and heading text |
 
-**Why the small text is not the logo's gold.** `#B5812A` is a beautiful colour
-and it measures **3.27:1** against this page. The accessibility minimum for
+**Why the small text is not the logo's gold.** `#C38209` is a beautiful colour
+and it measures **3.06:1** against this page. The accessibility minimum for
 normal text is 4.5:1 — and 12px is exactly the size the labels are set at, so
 that is the difference between a word you read and a word you squint at.
 
-`#96661A` is the same hue taken down until it measures **4.77:1**. The
-full-strength gold is still used everywhere contrast is not the question: rules,
-arches, icons, and anything sitting on the navy.
+`#96660D` is the same hue — 39°, to within a degree — taken down until it
+measures **4.75:1**. The full-strength gold is still used everywhere contrast
+is not the question: rules, arches, icons, and anything sitting on the navy.
 
 | Hex | Contrast | |
 |---|---|---|
-| `#B5812A` | 3.27 | the logo gold, measured off the artwork — fails AA as text |
-| `#A8741F` | 3.90 | darkened once — still short |
-| `#9E6E1D` | 4.30 | closer, and still under the line |
-| **`#96661A`** | **4.77** | **in use as `--accent`** |
-| `#8A5E14` | 5.45 | more headroom, and starting to read as brown |
-| `#0A2C6C` | 12.6 | the navy — passes easily, but a navy label reads as body text |
+| `#C38209` | 3.06 | the logo gold, measured off the artwork — fails AA as text |
+| `#B07A10` | 3.54 | darkened once — still short |
+| `#9E6C0E` | 4.33 | closer, and still under the line |
+| **`#96660D`** | **4.75** | **in use as `--accent`** |
+| `#8E610C` | 5.16 | more headroom, and starting to read as brown |
+| `#032A74` | 12.6 | the navy — passes easily, but a navy label reads as body text |
 
 All of these are rendered side by side on the `/foundations` page. Swapping one
 is one line in part 1 of `styles.css`.
@@ -1001,13 +1001,13 @@ is over it.
 
 Gold is the decoration colour here — hairlines, arches, 12px labels. A whole
 screen of it is both loud and, with words on top of it, unreadable: the logo
-gold measures 3.27:1 against white text. The donate band, the donate page's own
+gold measures 3.06:1 against white text. The donate band, the donate page's own
 hero, the menu, the footer and the loading panel are all `--brand`, which keeps
 them the same colour as each other and leaves the gold to do the one job it is
 good at.
 
 Gold *is* used as a fill in one place: `.btn--on-band`, the button on a navy
-band, which is pale gold with navy lettering on it at 7.7:1.
+band, which is pale gold with navy lettering on it at 8.1:1.
 
 ### Editing the homepage
 
@@ -1706,12 +1706,14 @@ The header shows `mark-dark.png` — the arch — and then sets **"TAIBA / ISLAM
 CENTRE" as live text** beside it, in the heading serif with the logo's own
 tracking.
 
-The supplied artwork is 627px wide, which leaves those two words about 14px
-tall in it. That is plenty for the stacked logo on the loading panel, where it
-is drawn large, and nowhere near enough for crisp lettering in a 36px header on
-a retina screen — a picture of it is soft at every size that matters. Type is
-sharp on any screen, scales with the layout, can be selected, and is read by a
-search engine as the name of the organisation instead of as a rectangle.
+This began as a resolution argument: the first artwork was 627px wide, which
+left those two words about 14px tall and far too soft for a header. The current
+artwork is 1524px and has the pixels, so that particular reason has gone. The
+rest have not, and they were always the stronger ones — type is sharp at
+**every** size rather than at the sizes somebody thought about, the second line
+drops below 420px wide as a CSS rule rather than a second file, it can be
+selected and copied, and a search engine reads "Taiba Islamic Centre" as the
+name of the organisation instead of looking at a rectangle.
 
 The picture therefore carries `alt=""`: it would otherwise say the name a
 second time, immediately after the text that already says it. The link around

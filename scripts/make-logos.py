@@ -58,7 +58,34 @@ mk = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mk)
 
 SOURCE = 'assets/logo-source.png'
-INSET  = 5      # px of frame to throw away on every edge before anything else
+
+# px trimmed off every edge before anything else. The first artwork arrived
+# with a thin printed frame round it; the current one has none, and on a clean
+# file this only ever removes blank margin, so it is cheap insurance either way.
+INSET  = 5
+
+# ---------------------------------------------------------------------------
+# HOW BIG THE DELIVERED FILES ARE, and why they are not the source size.
+#
+# The source is as large as the client sent it, and should be — it is the
+# master. What the BROWSER downloads is a different question, and getting it
+# wrong is expensive in the one place it is least affordable: the arch is in
+# the header of every single page.
+#
+# The arch is drawn at 38px tall (54px in the footer). The stacked logo is
+# drawn at most 200px wide, on the loading panel. Shipping a 1050px-tall PNG
+# for a 38px slot cost 528KB per visitor to throw away 96% of the pixels.
+#
+# So each delivered file is capped at roughly 3x the largest size it is ever
+# drawn at — enough for the densest screen anyone has, and nothing beyond it.
+# Raise a number here if a file starts being used somewhere bigger.
+#
+# The 1080 square masters are NOT capped: nothing on the site loads them. They
+# are the social-media profile picture and the source the icons are built from.
+# ---------------------------------------------------------------------------
+MAX_MARK_HEIGHT = 420    # drawn at 38–54px
+MAX_LOGO_WIDTH  = 640    # drawn at up to 200px wide
+
 WHITE_CUTOFF = 250
 
 if not os.path.exists(SOURCE):
@@ -68,26 +95,61 @@ if not os.path.exists(SOURCE):
 # ------------------------------------------------------- white -> alpha ----
 def key_out_white(w, h, px):
     """
-    The artwork arrives on a white background. Make the white transparent and
-    keep the ink, including the soft grey edges the JPEG left behind.
+    The artwork arrives on a white background. Make the white transparent, and
+    give every pixel the colour of the ink it actually belongs to.
 
-    Coverage is taken from the DARKEST channel: white is 255 everywhere, so it
-    gives 0; navy (10,44,108) gives 0.96; gold (181,129,41) gives 0.94. The
-    colour is then un-premultiplied — divided back out of the white it was
-    blended with — so a half-covered edge pixel keeps the full-strength ink
-    colour and only its alpha says it is an edge. Without that step every
-    outline comes back pale and the whole logo looks washed out.
+    COVERAGE comes from the darkest channel: white is 255 everywhere, so it
+    gives 0; the navy gives ~0.98 and the gold ~0.93. That number becomes the
+    alpha, and it is the only thing taken from the pixel's brightness.
+
+    COLOUR is not un-premultiplied per pixel, and that is the change worth
+    knowing about. Dividing the white back out of a barely-covered edge pixel
+    divides by a number close to zero, which amplifies whatever noise the
+    source encoding left behind: a file that is two colours came back with
+    25,832 distinct RGBA values, all of them near-identical fringes like
+    (0,128,128,4) beside (0,128,255,4). Invisible, and PNG cannot compress
+    them, so the header's arch weighed 160KB.
+
+    This logo IS two colours. So each pixel is assigned to the nearer of them
+    and given that exact value, keeping its own alpha. Which ink is decided by
+    the sign of (red - blue) on the ORIGINAL pixel, which survives all the way
+    down to near-zero coverage: composited on white, navy always pulls blue
+    above red and gold always the other way round, in proportion to how much
+    ink is there.
+
+    The result is ~500 distinct values instead of 25,832, cleaner edges with
+    no colour fringing, and a file a fraction of the size. The inks are
+    measured from the artwork rather than hard-coded, so this keeps working
+    when the artwork changes.
     """
+    # 1. Measure the two inks, from pixels solid enough to be trusted.
+    sums = {'cold': [0, 0, 0, 0], 'warm': [0, 0, 0, 0]}
+    for i in range(w * h):
+        r, g, b = px[i*4], px[i*4+1], px[i*4+2]
+        if 255 - min(r, g, b) < 200:
+            continue
+        key = 'warm' if r > b else 'cold'
+        acc = sums[key]
+        acc[0] += r; acc[1] += g; acc[2] += b; acc[3] += 1
+
+    inks = {}
+    for key, acc in sums.items():
+        inks[key] = tuple(acc[c] // acc[3] for c in range(3)) if acc[3] else None
+    if inks['cold'] is None and inks['warm'] is None:
+        raise SystemExit('no ink found — is the source really artwork on white?')
+    # A one-colour logo is perfectly legal; both names then point at it.
+    inks['cold'] = inks['cold'] or inks['warm']
+    inks['warm'] = inks['warm'] or inks['cold']
+    print(f'  inks measured: cold #%02X%02X%02X   warm #%02X%02X%02X' % (*inks['cold'], *inks['warm']))
+
+    # 2. Rebuild every pixel as "that ink, at this coverage".
     out = bytearray(w * h * 4)
     for i in range(w * h):
         r, g, b = px[i*4], px[i*4+1], px[i*4+2]
         a = 255 - min(r, g, b)
         if a <= 2:
             continue                      # leave it fully transparent
-        f = a / 255
-        for c in range(3):
-            v = (px[i*4+c] - 255 * (1 - f)) / f
-            out[i*4+c] = max(0, min(255, round(v)))
+        out[i*4:i*4+3] = bytes(inks['warm' if r > b else 'cold'])
         out[i*4+3] = a
     return bytes(out)
 
@@ -160,6 +222,26 @@ def whiten(w, h, px):
     return bytes(out)
 
 
+def fit(w, h, px, *, max_width=None, max_height=None):
+    """
+    Shrink to fit inside a cap, keeping the shape. Never enlarges — a source
+    smaller than the cap is already as good as it gets, and scaling it up
+    would only make a bigger file out of the same detail.
+
+    resize_area averages every source pixel that lands in a target pixel,
+    which is the right filter for taking high-contrast line artwork a long way
+    down. Sampling one pixel and discarding the rest breaks up a 3px gold
+    hairline into dots.
+    """
+    scale = 1.0
+    if max_width:  scale = min(scale, max_width / w)
+    if max_height: scale = min(scale, max_height / h)
+    if scale >= 1: return w, h, px
+
+    nw, nh = max(1, round(w * scale)), max(1, round(h * scale))
+    return nw, nh, mk.resize_area(w, h, px, nw, nh)
+
+
 def square(w, h, px, size, pad):
     """The artwork centred on a transparent square, `pad` of it left clear."""
     inner = size * (1 - 2*pad)
@@ -195,11 +277,16 @@ print(f'arch is rows 0-{arch_end-1}; the wordmark starts at {gaps[0][1]+1}')
 aw, ah, arch = trim(*mk.crop(w, h, px, 0, 0, w, arch_end))
 print(f'  arch      {aw}x{ah}')
 
+# Shrink once, then reverse — so both variants come off the same resampled
+# pixels and cannot end up a pixel different from each other.
+sw, sh, small_arch = fit(aw, ah, arch, max_height=MAX_MARK_HEIGHT)
+lw, lh, small_logo = fit(w, h, px, max_width=MAX_LOGO_WIDTH)
+
 WRITE = [
-    ('assets/mark-dark.png',   aw, ah, arch),
-    ('assets/mark-light.png',  aw, ah, reverse_out(aw, ah, arch)),
-    ('assets/logo-dark.png',   w,  h,  px),
-    ('assets/logo-light.png',  w,  h,  reverse_out(w, h, px)),
+    ('assets/mark-dark.png',   sw, sh, small_arch),
+    ('assets/mark-light.png',  sw, sh, reverse_out(sw, sh, small_arch)),
+    ('assets/logo-dark.png',   lw, lh, small_logo),
+    ('assets/logo-light.png',  lw, lh, reverse_out(lw, lh, small_logo)),
 ]
 for path, pw, ph, data in WRITE:
     mk.write_png(path, pw, ph, data)

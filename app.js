@@ -478,7 +478,7 @@ const MARK_DARK = '/assets/mark-dark.png';
 const brandMark = (variant = 'dark') => `
   <span class="brand-lockup">
     <img class="brand-mark" src="${variant === 'light' ? MARK_LIGHT : MARK_DARK}"
-         alt="" width="318" height="418" decoding="async">
+         alt="" width="806" height="1050" decoding="async">
     <span class="brand-word">
       <span class="brand-name">Taiba</span>
       <span class="brand-sub">Islamic Centre</span>
@@ -3053,12 +3053,12 @@ async function renderFoundations() {
     the same hue taken down until it does.
   */
   const candidates = [
-    ['#B5812A', '3.27', 'the logo gold, measured off the artwork — fails AA as text'],
-    ['#A8741F', '3.90', 'a first attempt at darkening it — still short'],
-    ['#9E6E1D', '4.30', 'closer, and still under the line'],
-    ['#96661A', '4.77', 'IN USE as --accent — the logo gold, nudged past AA'],
-    ['#8A5E14', '5.45', 'more headroom, and starting to read as brown'],
-    ['#0A2C6C', '12.6', 'the navy — passes easily, but a navy label reads as body text'],
+    ['#C38209', '2.95', 'the logo gold, measured off the artwork — fails AA as text'],
+    ['#B07A10', '3.54', 'a first attempt at darkening it — still short'],
+    ['#9E6C0E', '4.33', 'closer, and still under the line'],
+    ['#96660D', '4.75', 'IN USE as --accent — the logo gold, nudged past AA'],
+    ['#8E610C', '5.16', 'more headroom, and starting to read as brown'],
+    ['#032A74', '12.6', 'the navy — passes easily, but a navy label reads as body text'],
   ];
 
   const candidateRow = ([hex, contrast, note]) => `
@@ -3115,13 +3115,13 @@ async function renderFoundations() {
       </p>
 
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:var(--space-2); margin-top:var(--space-3)">
-        ${swatch('--brand', '#0A2C6C', 'donate band, footer, menu, loading panel')}
-        ${swatch('--brand-deep', '#061D4A', 'pressed state on top of --brand')}
-        ${swatch('--gold', '#B5812A', 'rules, arches, icons — never small text')}
-        ${swatch('--gold-soft', '#E2C185', 'gold that has to work on navy')}
-        ${swatch('--accent', '#96661A', 'labels, link text, the When column')}
+        ${swatch('--brand', '#032A74', 'donate band, footer, menu, loading panel')}
+        ${swatch('--brand-deep', '#021C4E', 'pressed state on top of --brand')}
+        ${swatch('--gold', '#C38209', 'rules, arches, icons — never small text')}
+        ${swatch('--gold-soft', '#E9C67E', 'gold that has to work on navy')}
+        ${swatch('--accent', '#96660D', 'labels, link text, the When column')}
         ${swatch('--page', '#FBF9F4', 'the page itself')}
-        ${swatch('--sand', '#F3EDE1', 'a section that steps forward')}
+        ${swatch('--sand', '#F4EBD8', 'a panel that steps forward')}
         ${swatch('--ink', '#10141C', 'all body and heading text')}
       </div>
 

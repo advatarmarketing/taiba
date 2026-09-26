@@ -179,7 +179,7 @@ if __name__ == '__main__':
     HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(HERE)
 
-    BRAND = (0x0A, 0x2C, 0x6C)          # --brand in styles.css
+    BRAND = (0x03, 0x2A, 0x74)          # --brand in styles.css
     SOURCE = 'assets/logo-square-light.png'
 
     if not os.path.exists(SOURCE):
