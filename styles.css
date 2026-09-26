@@ -3097,10 +3097,34 @@ body[data-copy-editing='true'] [data-copy]:hover { outline-color: var(--accent);
 
 .event-card-more { margin-top: var(--space-1); font-size: var(--micro); }
 
-/* ---- One event: the picture across the top ------------------------------ */
+/* ---- One event: the picture across the top ------------------------------
+
+   Full width, and CAPPED IN HEIGHT.
+
+   The frame is 33:20 like every other film-shaped thing on the site, and at
+   full bleed that is a trap: on a 1440px screen 33:20 is 873px tall, which is
+   more than the whole visible area of most laptops. You landed on an event and
+   saw a photograph and nothing else — no headline, no date, no sign that there
+   was a page underneath it.
+
+   So the shape is a MAXIMUM rather than a fixed ratio. The picture keeps 33:20
+   until that would make it taller than the cap, then it stops growing and
+   crops instead (the frame is data-fit="cover", so the middle is kept). The
+   cap is in vh as well as px so it answers the real question — how much of
+   THIS screen is the picture allowed to eat — rather than guessing at a
+   window size.
+
+   On a phone this rule never fires: 33:20 across 375px is 227px tall, well
+   under the cap, so the picture keeps its proper shape where there is no
+   problem to solve.
+   ------------------------------------------------------------------------ */
 
 .event-hero { position: relative; }
-.event-hero-media { width: 100%; }
+
+.event-hero-media {
+  width: 100%;
+  max-height: min(58vh, 620px);
+}
 
 .event-head { padding-block: var(--space-3) var(--space-2); }
 
