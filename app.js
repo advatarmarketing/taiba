@@ -472,8 +472,8 @@ const SOCIAL_LINKS = [
   what stops the header jumping as it loads. If the artwork is replaced,
   scripts/make-logos.py prints the new numbers.
 */
-const MARK_LIGHT = '/assets/mark-light.png';
-const MARK_DARK = '/assets/mark-dark.png';
+const MARK_LIGHT = '/assets/mark-light.png?v=e64eafe3';
+const MARK_DARK = '/assets/mark-dark.png?v=e64eafe3';
 
 const brandMark = (variant = 'dark') => `
   <span class="brand-lockup">

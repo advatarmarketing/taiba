@@ -48,6 +48,22 @@ The loading panel and the footer use the complete stacked file, because both
 draw it large enough for a picture to be the right answer.
 
 
+WHY THE LINKS TO THESE FILES HAVE ?v=SOMETHING ON THE END
+
+vercel.json caches /assets/ for an hour and then serves it STALE FOR A WEEK
+while it revalidates behind your back. That is right for files that never
+change and wrong the day they do — the filenames are fixed, so nothing tells a
+browser that logo-light.png is not the logo-light.png it already has.
+
+New artwork therefore goes live and nobody can see it: not you, not anybody
+who visited in the previous week. The file is correct on the server the whole
+time, which makes it a miserable thing to debug.
+
+So make-logos.py stamps every link to these files with a hash of their own
+contents, in index.html and app.js. It changes when the artwork changes and at
+no other time. You never type it; just run the script.
+
+
 IF YOU REPLACE THE ARTWORK
 
 1. Save the new artwork as logo-source.png — on white, any size, and the

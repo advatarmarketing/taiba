@@ -1753,6 +1753,25 @@ four times over:
 * It is the **arch alone and not the whole logo**, because at 32 pixels
   "ISLAMIC CENTRE" is four grey smudges while an arch is still an arch.
 
+### The `?v=` on the logo links
+
+`vercel.json` caches `/assets/` for an hour and then serves it **stale for a
+week** while it revalidates in the background. That is right for files that
+never change and wrong the day they do: the filenames are fixed, so nothing
+tells a browser that `logo-light.png` is not the one it already has.
+
+New artwork then goes live and nobody can see it — not you, not a visitor who
+came in the previous week — while the file is perfectly correct on the server.
+
+So `make-logos.py` stamps every link to those files with a hash of their own
+contents, in `index.html` and `app.js`. It changes when the artwork changes and
+at no other time. You never type it; running the script does it.
+
+The same is not done for the favicons: they are at the site root, not under
+`/assets/`, so they are not on that long cache. Browsers still hold on to a
+favicon harder than almost anything else, which is what the hard-refresh note
+below is about.
+
 ### Rebuilding the logo and the icons
 
 Only needed when the artwork changes. Save the new artwork over

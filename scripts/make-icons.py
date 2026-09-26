@@ -35,7 +35,31 @@ deliberate, and worth not undoing:
 There are no dependencies — only Python's own zlib — so it runs on a Mac with
 nothing installed.
 """
-import struct, zlib, os, sys
+import struct, zlib, os, sys, re
+
+
+# ------------------------------------------------------------- Tokens -----
+def token(name, css='styles.css'):
+    """
+    Read a colour straight out of styles.css — `token('--brand')`.
+
+    THE STYLESHEET IS THE ONE PLACE A BRAND COLOUR IS WRITTEN DOWN. These
+    scripts used to keep their own copies, and copies drift: the icon tile was
+    hand-edited twice in a week to chase --brand, and the reversed logo went
+    out with a pale gold that had not been the site's pale gold for two
+    commits. Nobody notices, because nobody puts a generated PNG next to a
+    CSS variable and compares them.
+
+    So there are no brand colours in these scripts any more. Change the token,
+    run the script, and the artwork follows.
+    """
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), css)
+    with open(path, encoding='utf-8') as handle:
+        match = re.search(rf'^\s*{re.escape(name)}\s*:\s*#([0-9A-Fa-f]{{6}})\s*;', handle.read(), re.M)
+    if not match:
+        raise SystemExit(f'{css} has no {name}: (as a 6-digit hex). Nothing else knows the colour.')
+    value = match.group(1)
+    return tuple(int(value[i:i+2], 16) for i in (0, 2, 4))
 
 # ---------------------------------------------------------------- PNG I/O --
 def read_png(path):
@@ -179,7 +203,7 @@ if __name__ == '__main__':
     HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(HERE)
 
-    BRAND = (0x03, 0x2A, 0x74)          # --brand in styles.css
+    BRAND = token('--brand')            # read from styles.css — never copied here
     SOURCE = 'assets/logo-square-light.png'
 
     if not os.path.exists(SOURCE):

@@ -46,7 +46,7 @@ still an arch.
 There are no dependencies — only Python's own zlib — so it runs on a Mac with
 nothing installed.
 """
-import os, sys, importlib.util
+import os, sys, re, hashlib, importlib.util
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(HERE)
@@ -198,10 +198,16 @@ def reverse_out(w, h, px):
     NOT a flat "make everything white" — that throws away half the logo. The
     navy lines are the ones that vanish against a navy panel, so those become
     white; the gold is already light enough to read and only comes up a little,
-    to the pale gold the site uses for small text on navy. Which is which is
-    decided per pixel by hue: gold is warm (red above blue), navy is cold.
+    to the pale gold the site uses on navy. Which is which is decided per pixel
+    by hue: gold is warm (red above blue), navy is cold.
+
+    The pale gold is READ OUT OF styles.css rather than written here. It was
+    written here once, --gold-soft moved, and the reversed logo went out for
+    two commits in a gold the site had stopped using — on the loading panel
+    and in the footer, where it sits inches from elements painted in the real
+    one.
     """
-    GOLD = (226, 193, 133)     # --gold-soft
+    GOLD = mk.token('--gold-soft')
     out = bytearray(px)
     for i in range(w * h):
         a = px[i*4+3]
@@ -301,4 +307,51 @@ mk.write_png('assets/logo-square-light.png', 1080, 1080,
              square(aw, ah, whiten(aw, ah, arch), 1080, 0.14))
 print('  wrote assets/logo-square-light.png    1080x1080  (the arch, in white)')
 
+
+# --------------------------------------------------------- Cache stamp ----
+def stamp_references():
+    """
+    Put a content stamp on every link to these files, so a browser that has
+    the old one knows to go and get the new one.
+
+    THIS IS NOT HOUSEKEEPING. vercel.json caches /assets/ for an hour and then
+    serves it STALE FOR A WEEK while it revalidates in the background — which
+    is exactly right for files that never change, and exactly wrong the day
+    they do. The filenames are fixed, so nothing in the request tells a
+    browser that logo-light.png is not the logo-light.png it already has.
+
+    New artwork therefore went live and nobody could see it: not the client,
+    not a visitor who had been to the site in the previous week. The file was
+    correct on the server the whole time.
+
+    The stamp is the content's own hash, so it changes when — and only when —
+    the artwork does. Rebuilding identical files rewrites nothing, and a
+    rebuild that changes a single pixel busts every cache holding it.
+    """
+    names = ['mark-dark', 'mark-light', 'logo-dark', 'logo-light']
+
+    digest = hashlib.sha1()
+    for name in names:
+        with open(f'assets/{name}.png', 'rb') as handle:
+            digest.update(handle.read())
+    stamp = digest.hexdigest()[:8]
+
+    # /assets/<one of ours>.png, with or without a stamp already on it.
+    pattern = re.compile(r'(/assets/(?:' + '|'.join(names) + r')\.png)(?:\?v=[0-9a-f]+)?')
+
+    for path in ('index.html', 'app.js'):
+        with open(path, encoding='utf-8') as handle:
+            before = handle.read()
+        after = pattern.sub(lambda m: f'{m.group(1)}?v={stamp}', before)
+        if after != before:
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(after)
+            print(f'  stamped {path}')
+    return stamp
+
+
+print(f"\n  reversed artwork uses --gold-soft #%02X%02X%02X, read from styles.css" % mk.token('--gold-soft'))
+print(f'  cache stamp ?v={stamp_references()}')
+print('\nCHECK THE TOKENS: the inks printed above are what the artwork actually')
+print('contains. --brand and --gold in styles.css should be those two values.')
 print('\nNow run:  python3 scripts/make-icons.py')
